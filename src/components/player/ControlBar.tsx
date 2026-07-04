@@ -46,8 +46,10 @@ export default function ControlBar({
         </button>
       </div>
       <div className={styles.bottom}>
-        {bubbleSlot}
-        <Scrubber currentTime={state.currentTime} duration={state.duration} bufferedEnd={state.bufferedEnd} onScrub={onScrub} onHover={onHover} />
+        <div className={styles.scrubRow}>
+          {bubbleSlot}
+          <Scrubber currentTime={state.currentTime} duration={state.duration} bufferedEnd={state.bufferedEnd} onScrub={onScrub} onHover={onHover} />
+        </div>
         <div className={styles.buttons}>
           <button onClick={engine.togglePlay} aria-label={state.paused ? 'Play' : 'Pause'}>{state.paused ? '▶' : '❚❚'}</button>
           <button onClick={() => engine.seekBy(-10)} aria-label="Rewind 10 seconds">⟲10</button>
