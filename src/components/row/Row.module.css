@@ -1,11 +1,15 @@
-.row { margin: 0 0 3vw; }
+.row { margin: 0 0 1vw; }
 .title { font-size: clamp(14px, 1.4vw, 24px); font-weight: 700; color: #e5e5e5; padding: 0 var(--nf-inset); margin-bottom: 8px; }
 .strip {
   --cards: 6;
   display: grid; grid-auto-flow: column;
   grid-auto-columns: calc((100% - 2 * var(--nf-inset) - 5 * var(--nf-card-gap)) / var(--cards));
   gap: var(--nf-card-gap);
-  padding: 0 var(--nf-inset);
+  /* Vertical padding gives the hover-expand (scale + info panel) room to grow
+     without being clipped: overflow clips at the padding box, so content inside
+     the padding stays visible. The horizontal --nf-inset padding already
+     contains the card's sideways growth for the same reason. */
+  padding: 28px var(--nf-inset) 150px;
   overflow-x: auto; scroll-behavior: smooth;
   scrollbar-width: none;
 }
@@ -14,11 +18,19 @@
 @media (max-width: 1100px) { .strip { --cards: 4; } }
 @media (max-width: 800px)  { .strip { --cards: 3; } }
 @media (max-width: 500px)  { .strip { --cards: 2; } }
-.viewport { position: relative; }
-.arrow { position: absolute; top: 0; bottom: 0; width: var(--nf-inset); z-index: 30; font-size: 2rem; color: #fff;
+/* Reclaim most of the strip's bottom padding so rows aren't spaced far apart;
+   on hover the info panel simply overlaps the row below (Netflix behaviour). */
+.viewport { position: relative; margin-bottom: -130px; }
+.arrow { position: absolute; top: 28px; bottom: 150px; width: var(--nf-inset); z-index: 30; font-size: 2rem; color: #fff;
   opacity: 0; transition: opacity .2s ease; }
 .viewport:hover .arrow { opacity: 1; }
 .left { left: 0; background: linear-gradient(90deg, rgba(0,0,0,.7), transparent); }
 .right { right: 0; background: linear-gradient(270deg, rgba(0,0,0,.7), transparent); }
 .cell { overflow: visible; }
-@media (max-width: 800px) { .arrow { display: none; } }
+@media (max-width: 800px) {
+  .arrow { display: none; }
+  /* No hover on touch: drop the extra vertical room so rows pack normally. */
+  .strip { padding: 0 var(--nf-inset); }
+  .viewport { margin-bottom: 0; }
+  .row { margin: 0 0 3vw; }
+}
