@@ -31,7 +31,7 @@ export default function Watch() {
     setError(null);
     (async () => {
       const { id: playId, startTicks } = await resolvePlayableItem(api, userId, item);
-      const { mediaSource, playSessionId } = await fetchPlaybackInfo(api, userId, playId, startTicks);
+      const { mediaSource, playSessionId } = await fetchPlaybackInfo(api, userId, playId, { startTicks });
       if (!active) return;
       startedForRef.current = itemId;
       playRef.current = { playSessionId, itemId: playId };

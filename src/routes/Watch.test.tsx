@@ -50,5 +50,5 @@ test('setup runs exactly once as item transitions from undefined to loaded (no d
   await waitFor(() => expect(fetchPlaybackInfo).toHaveBeenCalledTimes(1));
   expect(resolvePlayableItem).toHaveBeenCalledTimes(1);
   expect(reportStart).toHaveBeenCalledTimes(1);
-  expect(fetchPlaybackInfo).toHaveBeenCalledWith({}, 'u', 'm1', 500);
+  expect(fetchPlaybackInfo).toHaveBeenCalledWith({}, 'u', 'm1', { startTicks: 500 });
 });

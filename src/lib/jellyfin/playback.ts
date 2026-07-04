@@ -4,6 +4,13 @@ import { getTvShowsApi } from '@jellyfin/sdk/lib/utils/api/tv-shows-api';
 import type { BaseItemDto, MediaSourceInfo } from '@jellyfin/sdk/lib/generated-client';
 import { buildDeviceProfile } from './deviceProfile';
 
+export type NegotiateParams = {
+  startTicks?: number;
+  maxBitrate?: number;
+  audioStreamIndex?: number;
+  subtitleStreamIndex?: number;
+};
+
 /**
  * Resolves the item that should actually be played. Movies/episodes play themselves;
  * a Series has no MediaSources, so we resolve to a playable episode: prefer the
@@ -36,15 +43,17 @@ export async function resolvePlayableItem(
 }
 
 export async function fetchPlaybackInfo(
-  api: Api, userId: string, itemId: string, startTicks = 0,
+  api: Api, userId: string, itemId: string, params: NegotiateParams = {},
 ): Promise<{ mediaSource: MediaSourceInfo; playSessionId: string }> {
   const { data } = await getMediaInfoApi(api).getPostedPlaybackInfo({
     itemId,
     playbackInfoDto: {
       UserId: userId,
-      DeviceProfile: buildDeviceProfile(),
-      StartTimeTicks: startTicks,
-      MaxStreamingBitrate: 120_000_000,
+      DeviceProfile: buildDeviceProfile(params.maxBitrate),
+      StartTimeTicks: params.startTicks ?? 0,
+      MaxStreamingBitrate: params.maxBitrate ?? 120_000_000,
+      AudioStreamIndex: params.audioStreamIndex,
+      SubtitleStreamIndex: params.subtitleStreamIndex,
       AutoOpenLiveStream: true,
     },
   });
@@ -56,21 +65,20 @@ export async function fetchPlaybackInfo(
 export function resolveStreamUrl(
   serverUrl: string, token: string, itemId: string, ms: MediaSourceInfo, deviceId: string,
 ): { url: string; isHls: boolean } {
-  if (ms.TranscodingUrl && ms.TranscodingSubProtocol === 'hls') {
-    return { url: `${serverUrl}${ms.TranscodingUrl}`, isHls: true };
-  }
   if (ms.SupportsDirectStream || ms.SupportsDirectPlay) {
     const container = (ms.Container ?? 'mp4').split(',')[0];
-    const q = new URLSearchParams({
-      Static: 'true',
-      mediaSourceId: ms.Id ?? itemId,
-      deviceId,
-      api_key: token,
-    });
+    const q = new URLSearchParams({ Static: 'true', mediaSourceId: ms.Id ?? itemId, deviceId, api_key: token });
     return { url: `${serverUrl}/Videos/${itemId}/stream.${container}?${q.toString()}`, isHls: false };
   }
   if (ms.TranscodingUrl) {
     return { url: `${serverUrl}${ms.TranscodingUrl}`, isHls: ms.TranscodingSubProtocol === 'hls' };
   }
   throw new Error('No streamable URL for media source');
+}
+
+export async function stopEncoding(api: Api, deviceId: string, playSessionId: string): Promise<void> {
+  if (!playSessionId) return;
+  try {
+    await api.axiosInstance.delete(`${api.basePath}/Videos/ActiveEncodings`, { params: { deviceId, playSessionId } });
+  } catch { /* best-effort */ }
 }
