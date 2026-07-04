@@ -1,10 +1,12 @@
 import '@testing-library/jest-dom/vitest';
 
-// Mock localStorage for testing
+// localStorage polyfill for test environments
+// Provides a working localStorage API when not available through jsdom
 if (typeof global !== 'undefined' && !global.localStorage) {
   const store: Record<string, string> = {};
+
   global.localStorage = {
-    getItem: (key: string) => store[key] || null,
+    getItem: (key: string) => store[key] ?? null,
     setItem: (key: string, value: string) => {
       store[key] = value;
     },
@@ -12,14 +14,16 @@ if (typeof global !== 'undefined' && !global.localStorage) {
       delete store[key];
     },
     clear: () => {
-      for (const key in store) {
+      Object.keys(store).forEach(key => {
         delete store[key];
-      }
+      });
     },
     key: (index: number) => {
       const keys = Object.keys(store);
-      return keys[index] || null;
+      return keys[index] ?? null;
     },
-    length: 0,
-  } as any;
+    get length() {
+      return Object.keys(store).length;
+    },
+  };
 }

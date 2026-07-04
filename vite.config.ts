@@ -18,11 +18,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    environmentOptions: {
-      jsdom: {
-        localStorage: true,
-      },
-    },
     setupFiles: ['./vitest.setup.ts'],
     exclude: ['jellyfin-web/**', 'node_modules/**'],
     include: ['src/**/*.test.tsx', 'src/**/*.test.ts'],
