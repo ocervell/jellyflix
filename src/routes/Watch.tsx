@@ -1,96 +1,115 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { useItem } from '../hooks/api/useItem';
-import { getDeviceId } from '../lib/jellyfin/device';
+import { usePlaybackSession } from '../hooks/player/usePlaybackSession';
+import { useAbrController } from '../hooks/player/useAbrController';
+import type { EngineState } from '../hooks/player/useVideoEngine';
 import { getBackdropUrl } from '../lib/jellyfin/images';
-import { fetchPlaybackInfo, resolvePlayableItem, resolveStreamUrl } from '../lib/jellyfin/playback';
 import { reportStart, reportProgress, reportStopped } from '../lib/jellyfin/reporting';
-import { ticksToSeconds } from '../lib/format';
+import { selectTrickplay } from '../lib/jellyfin/trickplay';
 import VideoPlayer from '../components/player/VideoPlayer';
 
-type PlaySession = { playSessionId: string; itemId: string };
+const IDLE: EngineState = {
+  paused: true, currentTime: 0, duration: 0, bufferedEnd: 0,
+  volume: 1, muted: false, waiting: false, stallCount: 0,
+};
 
 export default function Watch() {
   const { itemId = '' } = useParams();
   const navigate = useNavigate();
-  const { api, session } = useApi();
+  const { api } = useApi();
   const { data: item } = useItem(itemId);
-  const { userId, serverUrl, accessToken } = session;
-  const [stream, setStream] = useState<{ url: string; isHls: boolean; startSeconds: number } | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const startedForRef = useRef<string | null>(null);
-  const playRef = useRef<PlaySession | null>(null);
-  const lastPositionRef = useRef(0);
+  const positionRef = useRef(0); // relative to the engine's currentTime (HLS transcodes restart at 0)
+  const baseRef = useRef(0); // absolute-position offset for the current stream (0 for direct/progressive)
+  const session = usePlaybackSession(itemId, () => baseRef.current + positionRef.current);
+  baseRef.current = session.positionBaseSeconds;
+  const [playerError, setPlayerError] = useState<string | null>(null);
+  const [engineState, setEngineState] = useState<EngineState | null>(null);
 
-  // Runs the playback setup exactly once per itemId, and only once `item` has
-  // loaded (so a Continue-Watching resume position is final, not a 0 -> N flip).
+  // Mount ABR controller (unconditional top-level hook)
+  useAbrController({
+    engineState: engineState ?? IDLE,
+    getPosition: () => positionRef.current,
+    bandwidth: session.bandwidth,
+    currentBitrate: session.currentBitrate,
+    isTranscoding: session.isTranscoding,
+    onShift: (b) => { void session.renegotiate({ maxBitrate: b, position: baseRef.current + positionRef.current }); },
+  });
+
+  // reportStart once when a stream first appears; report Stopped for the previous
+  // playSessionId first (renegotiation mints a new one, which would otherwise orphan
+  // the prior server-side play session).
+  const reportedRef = useRef<string | null>(null);
+  const prevReportedRef = useRef<{ playId: string; playSessionId: string } | null>(null);
   useEffect(() => {
-    if (!item?.Id || startedForRef.current === itemId) return;
-    let active = true;
-    setError(null);
-    (async () => {
-      const { id: playId, startTicks } = await resolvePlayableItem(api, userId, item);
-      const { mediaSource, playSessionId } = await fetchPlaybackInfo(api, userId, playId, startTicks);
-      if (!active) return;
-      startedForRef.current = itemId;
-      playRef.current = { playSessionId, itemId: playId };
-      const resolved = resolveStreamUrl(serverUrl, accessToken, playId, mediaSource, getDeviceId());
-      setStream({ ...resolved, startSeconds: ticksToSeconds(startTicks) });
-      // fire-and-forget: a reporting failure must not tear down playback
-      void reportStart(api, { itemId: playId, playSessionId, positionTicks: startTicks }).catch(() => {});
-    })().catch((e: unknown) => {
-      if (!active) return;
-      setError(e instanceof Error ? e.message : 'This title can’t be played right now.');
-    });
-    return () => { active = false; };
-  }, [item, itemId, api, userId, serverUrl, accessToken]);
-
-  // Report Stopped whenever the player goes away, however that happens
-  // (in-app Back, browser back, refresh, hash-change unmount, ...).
-  useEffect(() => () => {
-    const p = playRef.current;
-    if (!p) return;
-    void reportStopped(api, { itemId: p.itemId, playSessionId: p.playSessionId, positionTicks: Math.round(lastPositionRef.current * 10_000_000) }).catch(() => {});
-  }, [api]);
+    if (!session.stream || !session.playSessionId || reportedRef.current === session.playSessionId) return;
+    reportedRef.current = session.playSessionId;
+    const prev = prevReportedRef.current;
+    if (prev && prev.playSessionId && prev.playSessionId !== session.playSessionId) {
+      void reportStopped(api, { itemId: prev.playId, playSessionId: prev.playSessionId, positionTicks: Math.round((baseRef.current + positionRef.current) * 1e7) }).catch(() => {});
+    }
+    positionRef.current = session.stream.startSeconds;
+    const absoluteStart = session.positionBaseSeconds + session.stream.startSeconds;
+    void reportStart(api, { itemId: session.playId, playSessionId: session.playSessionId, positionTicks: Math.round(absoluteStart * 1e7) }).catch(() => {});
+    prevReportedRef.current = { playId: session.playId, playSessionId: session.playSessionId };
+  }, [session.stream, session.playSessionId, session.playId, session.positionBaseSeconds, api]);
 
   const onProgress = useCallback((seconds: number, paused: boolean) => {
-    lastPositionRef.current = seconds;
-    const p = playRef.current;
-    if (!p) return;
-    void reportProgress(api, { itemId: p.itemId, playSessionId: p.playSessionId, positionTicks: Math.round(seconds * 10_000_000), isPaused: paused }).catch(() => {});
+    positionRef.current = seconds;
+    if (!session.playSessionId) return;
+    const positionTicks = Math.round((baseRef.current + seconds) * 1e7);
+    void reportProgress(api, { itemId: session.playId, playSessionId: session.playSessionId, positionTicks, isPaused: paused }).catch(() => {});
+  }, [api, session.playId, session.playSessionId]);
+
+  // Mirror session.playId/playSessionId in a ref for unmount cleanup
+  const playRefRef = useRef({ playId: session.playId, playSessionId: session.playSessionId });
+  playRefRef.current = { playId: session.playId, playSessionId: session.playSessionId };
+
+  // Report Stopped on unmount and Back
+  useEffect(() => () => {
+    const p = playRefRef.current;
+    if (!p.playSessionId) return;
+    const positionTicks = Math.round((baseRef.current + positionRef.current) * 1e7);
+    void reportStopped(api, { itemId: p.playId, playSessionId: p.playSessionId, positionTicks }).catch(() => {});
   }, [api]);
 
-  const onPlayerError = useCallback((msg: string) => { setError(msg); }, []);
-
   const onBack = useCallback(() => {
-    const p = playRef.current;
-    if (p) {
-      void reportStopped(api, { itemId: p.itemId, playSessionId: p.playSessionId, positionTicks: Math.round(lastPositionRef.current * 10_000_000) }).catch(() => {});
-      playRef.current = null;
+    const p = playRefRef.current;
+    if (p.playSessionId) {
+      const positionTicks = Math.round((baseRef.current + positionRef.current) * 1e7);
+      void reportStopped(api, { itemId: p.playId, playSessionId: p.playSessionId, positionTicks }).catch(() => {});
+      playRefRef.current = { playId: p.playId, playSessionId: '' };
     }
     navigate(-1);
   }, [api, navigate]);
 
-  if (error) {
+  const trickplay = useMemo(
+    () => item && session.mediaSource?.Id ? selectTrickplay(item, session.mediaSource.Id, window.screen.width, window.devicePixelRatio) : null,
+    [item, session.mediaSource?.Id],
+  );
+
+  const errorMessage = session.error || playerError;
+  if (errorMessage) {
     return (
       <div style={{ display: 'grid', placeItems: 'center', height: '100%', gap: '1rem' }}>
-        <p>{error}</p>
-        <button onClick={() => navigate(-1)}>‹ Back</button>
+        <p>{errorMessage}</p>
+        <button onClick={() => navigate(-1)}>Back</button>
       </div>
     );
   }
 
-  if (!stream) return <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>Preparing playback…</div>;
+  if (!session.stream) return <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>Preparing playback...</div>;
   return (
     <VideoPlayer
-      src={stream.url}
-      isHls={stream.isHls}
+      session={session}
       poster={item ? getBackdropUrl(api, item, { width: 1280 }) : null}
-      startSeconds={stream.startSeconds}
+      title={item?.Name ?? ''}
       onProgress={onProgress}
       onBack={onBack}
-      onError={onPlayerError}
+      onError={setPlayerError}
+      onEngineState={setEngineState}
+      trickplay={trickplay}
     />
   );
 }

@@ -9,7 +9,12 @@ vi.mock('@jellyfin/sdk/lib/utils/api/tv-shows-api', () => ({
   getTvShowsApi: () => ({ getNextUp, getSeasons, getEpisodes }),
 }));
 
-import { resolveStreamUrl, resolvePlayableItem } from './playback';
+const mockGetPostedPlaybackInfo = vi.fn().mockResolvedValue({ data: { MediaSources: [{ Id: 'm' }], PlaySessionId: 'p' } });
+vi.mock('@jellyfin/sdk/lib/utils/api/media-info-api', () => ({
+  getMediaInfoApi: () => ({ getPostedPlaybackInfo: mockGetPostedPlaybackInfo }),
+}));
+
+import { resolveStreamUrl, resolvePlayableItem, fetchPlaybackInfo, stopEncoding } from './playback';
 
 beforeEach(() => {
   getNextUp.mockReset();
@@ -31,6 +36,13 @@ test('hls transcode when TranscodingUrl present and hls subprotocol', () => {
   const r = resolveStreamUrl(base.url, base.token, base.itemId, ms, base.deviceId);
   expect(r.isHls).toBe(true);
   expect(r.url).toBe('/jf/videos/itm/master.m3u8?x=1');
+});
+
+test('direct-stream wins even when a TranscodingUrl is also present', () => {
+  const ms = { Id: 'ms1', Container: 'mkv', SupportsDirectStream: true, SupportsDirectPlay: true, TranscodingUrl: '/videos/itm/master.m3u8?x=1', TranscodingSubProtocol: 'hls' } as unknown as MediaSourceInfo;
+  const r = resolveStreamUrl('/jf', 'tok', 'itm', ms, 'dev');
+  expect(r.isHls).toBe(false);
+  expect(r.url).toBe('/jf/Videos/itm/stream.mkv?Static=true&mediaSourceId=ms1&deviceId=dev&api_key=tok');
 });
 
 test('resolvePlayableItem returns the item itself for a movie', async () => {
@@ -65,4 +77,53 @@ test('resolvePlayableItem throws when a series has no episodes at all', async ()
   getSeasons.mockResolvedValue({ data: { Items: [] } });
   const item = { Id: 'series3', Type: 'Series' } as BaseItemDto;
   await expect(resolvePlayableItem({} as Api, 'user1', item)).rejects.toThrow();
+});
+
+test('fetchPlaybackInfo forwards negotiation params', async () => {
+  mockGetPostedPlaybackInfo.mockClear();
+  await fetchPlaybackInfo({} as never, 'u', 'itm', { startTicks: 50, maxBitrate: 3_000_000, audioStreamIndex: 2, subtitleStreamIndex: 3 });
+  const arg = mockGetPostedPlaybackInfo.mock.calls[0][0].playbackInfoDto;
+  expect(arg).toMatchObject({ UserId: 'u', StartTimeTicks: 50, MaxStreamingBitrate: 3_000_000, AudioStreamIndex: 2, SubtitleStreamIndex: 3 });
+});
+
+test('stopEncoding calls delete with api_key, deviceId, and playSessionId', async () => {
+  const mockDelete = vi.fn().mockResolvedValue({});
+  const api = {
+    basePath: '/jf',
+    accessToken: 'tok',
+    axiosInstance: { delete: mockDelete },
+  } as never;
+  await stopEncoding(api, 'dev', 'ps');
+  expect(mockDelete).toHaveBeenCalledWith(
+    expect.stringContaining('/Videos/ActiveEncodings'),
+    expect.objectContaining({
+      params: expect.objectContaining({
+        deviceId: 'dev',
+        playSessionId: 'ps',
+        api_key: 'tok',
+      }),
+    }),
+  );
+});
+
+test('stopEncoding no-ops when playSessionId is empty', async () => {
+  const mockDelete = vi.fn();
+  const api = {
+    basePath: '/jf',
+    accessToken: 'tok',
+    axiosInstance: { delete: mockDelete },
+  } as never;
+  await stopEncoding(api, 'dev', '');
+  expect(mockDelete).not.toHaveBeenCalled();
+});
+
+test('stopEncoding swallows delete rejection', async () => {
+  const mockDelete = vi.fn().mockRejectedValue(new Error('Network error'));
+  const api = {
+    basePath: '/jf',
+    accessToken: 'tok',
+    axiosInstance: { delete: mockDelete },
+  } as never;
+  // Should not throw
+  await expect(stopEncoding(api, 'dev', 'ps')).resolves.toBeUndefined();
 });

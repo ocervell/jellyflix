@@ -1,70 +1,78 @@
-import { useEffect, useRef } from 'react';
-import Hls from 'hls.js';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useVideoEngine, type EngineState } from '../../hooks/player/useVideoEngine';
+import ControlBar from './ControlBar';
+import TrackMenu from './TrackMenu';
+import TrickplayBubble from './TrickplayBubble';
+import { subtitleTrackUrl } from '../../lib/jellyfin/mediaStreams';
+import { useApi } from '../../hooks/useApi';
+import type { PlaybackSession } from '../../hooks/player/usePlaybackSession';
+import type { Trickplay } from '../../lib/jellyfin/trickplay';
 import styles from './VideoPlayer.module.css';
 
 export default function VideoPlayer({
-  src, isHls, poster, startSeconds, onProgress, onBack, onError,
+  session, poster, title, onProgress, onBack, onError, onEngineState, trickplay,
 }: {
-  src: string; isHls: boolean; poster: string | null; startSeconds: number;
+  session: PlaybackSession; poster: string | null; title: string;
   onProgress: (seconds: number, paused: boolean) => void; onBack: () => void;
-  onError?: (msg: string) => void;
+  onError?: (msg: string) => void; onEngineState?: (s: EngineState) => void;
+  trickplay?: Trickplay | null;
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const { session: appSession } = useApi();
+  const stream = session.stream!;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [hover, setHover] = useState<{ seconds: number; x: number } | null>(null);
+  const engine = useVideoEngine({ src: stream.url, isHls: stream.isHls, startSeconds: stream.startSeconds, onError: (msg) => onError?.(msg) });
+  const { videoRef } = engine;
 
+  const onProgressRef = useRef(onProgress); onProgressRef.current = onProgress;
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    let hls: Hls | undefined;
-    if (isHls && Hls.isSupported()) {
-      hls = new Hls();
-      hls.on(Hls.Events.ERROR, (_event, data) => {
-        if (!data.fatal) return;
-        switch (data.type) {
-          case Hls.ErrorTypes.NETWORK_ERROR:
-            hls?.startLoad();
-            break;
-          case Hls.ErrorTypes.MEDIA_ERROR:
-            hls?.recoverMediaError();
-            break;
-          default:
-            hls?.destroy();
-            onError?.('Playback failed');
-            break;
-        }
-      });
-      hls.loadSource(src);
-      hls.attachMedia(video);
-    } else {
-      video.src = src;
-    }
-    const onLoaded = () => { if (startSeconds > 0) video.currentTime = startSeconds; };
-    video.addEventListener('loadedmetadata', onLoaded);
-    return () => { video.removeEventListener('loadedmetadata', onLoaded); hls?.destroy(); };
-  }, [src, isHls, startSeconds, onError]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const tick = () => onProgress(video.currentTime, video.paused);
+    const video = videoRef.current; if (!video) return;
+    const tick = () => onProgressRef.current(video.currentTime, video.paused);
     const id = window.setInterval(tick, 10_000);
-    const onPause = () => onProgress(video.currentTime, true);
-    const onPlay = () => onProgress(video.currentTime, false);
-    const onSeeked = () => onProgress(video.currentTime, video.paused);
-    video.addEventListener('pause', onPause);
-    video.addEventListener('play', onPlay);
-    video.addEventListener('seeked', onSeeked);
-    return () => {
-      window.clearInterval(id);
-      video.removeEventListener('pause', onPause);
-      video.removeEventListener('play', onPlay);
-      video.removeEventListener('seeked', onSeeked);
-    };
-  }, [onProgress]);
+    const report = () => onProgressRef.current(video.currentTime, video.paused);
+    video.addEventListener('pause', report); video.addEventListener('play', report); video.addEventListener('seeked', report);
+    return () => { window.clearInterval(id); video.removeEventListener('pause', report); video.removeEventListener('play', report); video.removeEventListener('seeked', report); };
+  }, [videoRef]);
+
+  useEffect(() => {
+    onEngineState?.(engine.state);
+  }, [engine.state, onEngineState]);
+
+  // External subtitle <track>s with a resolvable URL; show the selected one.
+  // Filtered so the rendered <track> list stays 1:1 with video.textTracks.
+  const externalSubs = useMemo(
+    () => session.subtitleTracks.filter(
+      (t) => t.deliveryMethod === 'External' && subtitleTrackUrl(appSession.serverUrl, appSession.accessToken, t) !== null,
+    ),
+    [session.subtitleTracks, appSession.serverUrl, appSession.accessToken],
+  );
+  useEffect(() => {
+    const video = videoRef.current; if (!video) return;
+    Array.from(video.textTracks).forEach((tt, i) => {
+      tt.mode = externalSubs[i]?.index === session.subtitleIndex ? 'showing' : 'disabled';
+    });
+  }, [session.subtitleIndex, externalSubs, videoRef, stream.url]);
+
+  const onScrub = useCallback((s: number) => engine.seek(s), [engine]);
+  const extras = (
+    <TrackMenu audioTracks={session.audioTracks} subtitleTracks={session.subtitleTracks}
+      audioIndex={session.audioIndex} subtitleIndex={session.subtitleIndex}
+      onAudio={(i) => void session.setAudioTrack(i)} onSubtitle={(i) => void session.setSubtitleTrack(i)}
+      onOpenChange={setMenuOpen} />
+  );
 
   return (
     <div className={styles.wrap}>
-      <button className={styles.back} onClick={onBack} aria-label="Back">‹ Back</button>
-      <video ref={videoRef} className={styles.video} poster={poster ?? undefined} controls autoPlay />
+      <video ref={videoRef} className={styles.video} poster={poster ?? undefined} autoPlay>
+        {externalSubs.map((t) => {
+          const url = subtitleTrackUrl(appSession.serverUrl, appSession.accessToken, t)!;
+          return <track key={t.index} kind="subtitles" srcLang={t.language ?? 'und'} label={t.label} src={url} />;
+        })}
+      </video>
+      <ControlBar
+        engine={engine} title={title} onBack={onBack} onScrub={onScrub} onHover={setHover} menuOpen={menuOpen} extras={extras}
+        bubbleSlot={<TrickplayBubble trickplay={trickplay ?? null} serverUrl={appSession.serverUrl} token={appSession.accessToken} hover={hover} />}
+      />
     </div>
   );
 }

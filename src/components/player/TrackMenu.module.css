@@ -1,0 +1,7 @@
+.wrap { position: relative; }
+.panel { position: absolute; bottom: 40px; right: 0; display: flex; gap: 24px; background: rgba(0,0,0,.9); padding: 16px 20px; border-radius: 6px; min-width: 280px; }
+.col { display: flex; flex-direction: column; gap: 4px; min-width: 120px; }
+.col h4 { color: var(--nf-grey); font-size: 13px; margin-bottom: 6px; }
+.col button { color: #fff; text-align: left; padding: 4px 6px; border-radius: 4px; font-size: 14px; }
+.col button:hover { background: rgba(255,255,255,.1); }
+.active { font-weight: 700; }
