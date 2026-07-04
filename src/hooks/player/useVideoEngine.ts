@@ -22,6 +22,8 @@ const INITIAL: EngineState = {
 export function useVideoEngine(opts: { src: string; isHls: boolean; startSeconds: number; onError: (msg: string) => void }): VideoEngine {
   const { src, isHls, startSeconds, onError } = opts;
   const videoRef = useRef<HTMLVideoElement>(null);
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
   const [state, setState] = useState<EngineState>(INITIAL);
 
   // Source attach + hls lifecycle
@@ -37,7 +39,7 @@ export function useVideoEngine(opts: { src: string; isHls: boolean; startSeconds
         if (!data.fatal) return;
         if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls!.startLoad();
         else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls!.recoverMediaError();
-        else { hls!.destroy(); onError('Playback failed'); }
+        else { hls!.destroy(); onErrorRef.current('Playback failed'); }
       });
     } else {
       video.src = src;
@@ -45,7 +47,7 @@ export function useVideoEngine(opts: { src: string; isHls: boolean; startSeconds
     const onLoaded = () => { if (!isHls && startSeconds > 0) video.currentTime = startSeconds; };
     video.addEventListener('loadedmetadata', onLoaded);
     return () => { video.removeEventListener('loadedmetadata', onLoaded); hls?.destroy(); };
-  }, [src, isHls, startSeconds, onError]);
+  }, [src, isHls, startSeconds]);
 
   // State sync
   useEffect(() => {
