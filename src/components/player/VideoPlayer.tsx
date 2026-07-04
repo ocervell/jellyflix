@@ -1,39 +1,63 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useVideoEngine } from '../../hooks/player/useVideoEngine';
 import ControlBar from './ControlBar';
+import TrackMenu from './TrackMenu';
+import { subtitleTrackUrl } from '../../lib/jellyfin/mediaStreams';
+import { useApi } from '../../hooks/useApi';
+import type { PlaybackSession } from '../../hooks/player/usePlaybackSession';
 import styles from './VideoPlayer.module.css';
 
 export default function VideoPlayer({
-  src, isHls, poster, startSeconds, title = '', onProgress, onBack, onError,
+  session, poster, title, onProgress, onBack,
 }: {
-  src: string; isHls: boolean; poster: string | null; startSeconds: number; title?: string;
-  onProgress: (seconds: number, paused: boolean) => void; onBack: () => void; onError: (msg: string) => void;
+  session: PlaybackSession; poster: string | null; title: string;
+  onProgress: (seconds: number, paused: boolean) => void; onBack: () => void;
 }) {
-  const engine = useVideoEngine({ src, isHls, startSeconds, onError });
+  const { session: appSession } = useApi();
+  const stream = session.stream!;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const engine = useVideoEngine({ src: stream.url, isHls: stream.isHls, startSeconds: stream.startSeconds, onError: () => {} });
   const { videoRef } = engine;
 
-  // Progress reporting (unchanged cadence: 10s + pause/play/seeked)
-  const onProgressRef = useRef(onProgress);
-  onProgressRef.current = onProgress;
+  const onProgressRef = useRef(onProgress); onProgressRef.current = onProgress;
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    const video = videoRef.current; if (!video) return;
     const tick = () => onProgressRef.current(video.currentTime, video.paused);
     const id = window.setInterval(tick, 10_000);
     const report = () => onProgressRef.current(video.currentTime, video.paused);
-    video.addEventListener('pause', report);
-    video.addEventListener('play', report);
-    video.addEventListener('seeked', report);
+    video.addEventListener('pause', report); video.addEventListener('play', report); video.addEventListener('seeked', report);
     return () => { window.clearInterval(id); video.removeEventListener('pause', report); video.removeEventListener('play', report); video.removeEventListener('seeked', report); };
   }, [videoRef]);
 
+  // External subtitle <track>s; show the selected one.
+  const externalSubs = useMemo(
+    () => session.subtitleTracks.filter((t) => t.deliveryMethod === 'External'),
+    [session.subtitleTracks],
+  );
+  useEffect(() => {
+    const video = videoRef.current; if (!video) return;
+    Array.from(video.textTracks).forEach((tt, i) => {
+      tt.mode = externalSubs[i]?.index === session.subtitleIndex ? 'showing' : 'disabled';
+    });
+  }, [session.subtitleIndex, externalSubs, videoRef, stream.url]);
+
   const onScrub = useCallback((s: number) => engine.seek(s), [engine]);
-  const onHover = useCallback(() => {}, []); // replaced in Phase 4 (trickplay)
+  const extras = (
+    <TrackMenu audioTracks={session.audioTracks} subtitleTracks={session.subtitleTracks}
+      audioIndex={session.audioIndex} subtitleIndex={session.subtitleIndex}
+      onAudio={(i) => void session.setAudioTrack(i)} onSubtitle={(i) => void session.setSubtitleTrack(i)}
+      onOpenChange={setMenuOpen} />
+  );
 
   return (
     <div className={styles.wrap}>
-      <video ref={videoRef} className={styles.video} poster={poster ?? undefined} autoPlay />
-      <ControlBar engine={engine} title={title} onBack={onBack} onScrub={onScrub} onHover={onHover} menuOpen={false} extras={null} />
+      <video ref={videoRef} className={styles.video} poster={poster ?? undefined} autoPlay crossOrigin="anonymous">
+        {externalSubs.map((t) => {
+          const url = subtitleTrackUrl(appSession.serverUrl, appSession.accessToken, t);
+          return url ? <track key={t.index} kind="subtitles" srcLang={t.language ?? 'und'} label={t.label} src={url} /> : null;
+        })}
+      </video>
+      <ControlBar engine={engine} title={title} onBack={onBack} onScrub={onScrub} onHover={() => {}} menuOpen={menuOpen} extras={extras} />
     </div>
   );
 }
