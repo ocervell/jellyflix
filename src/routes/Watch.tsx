@@ -26,7 +26,8 @@ export default function Watch() {
       sessionRef.current = { playSessionId };
       const resolved = resolveStreamUrl(session.serverUrl, session.accessToken, itemId, mediaSource, getDeviceId());
       setStream(resolved);
-      await reportStart(api, { itemId, playSessionId, positionTicks: startTicks });
+      // fire-and-forget: a reporting failure must not tear down playback
+      void reportStart(api, { itemId, playSessionId, positionTicks: startTicks }).catch(() => {});
     })().catch(() => { if (active) setStream(null); });
     return () => { active = false; };
   }, [api, session, itemId, startTicks]);
@@ -34,14 +35,14 @@ export default function Watch() {
   const onProgress = useCallback((seconds: number, paused: boolean) => {
     const ps = sessionRef.current?.playSessionId;
     if (!ps) return;
-    void reportProgress(api, { itemId, playSessionId: ps, positionTicks: Math.round(seconds * 10_000_000), isPaused: paused });
+    void reportProgress(api, { itemId, playSessionId: ps, positionTicks: Math.round(seconds * 10_000_000), isPaused: paused }).catch(() => {});
   }, [api, itemId]);
 
   const onBack = useCallback(() => {
     const ps = sessionRef.current?.playSessionId;
     const video = document.querySelector('video');
     const secs = video?.currentTime ?? 0;
-    if (ps) void reportStopped(api, { itemId, playSessionId: ps, positionTicks: Math.round(secs * 10_000_000) });
+    if (ps) void reportStopped(api, { itemId, playSessionId: ps, positionTicks: Math.round(secs * 10_000_000) }).catch(() => {});
     navigate(-1);
   }, [api, itemId, navigate]);
 
