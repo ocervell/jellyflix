@@ -11,3 +11,8 @@ test('round-trips a session', () => {
   clearSession();
   expect(loadSession()).toBeNull();
 });
+
+test('returns null when stored JSON is corrupt', () => {
+  localStorage.setItem('jellyflix.session', '{not valid json');
+  expect(loadSession()).toBeNull();
+});
