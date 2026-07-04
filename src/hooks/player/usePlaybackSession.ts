@@ -34,19 +34,18 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
     const resolved = resolveStreamUrl(serverUrl, accessToken, playId, ms, getDeviceId());
     playRef.current = { playId, playSessionId };
     setMediaSource(ms);
-    setAudioIndex(ms.DefaultAudioStreamIndex ?? audioIndex);
     setStream({ ...resolved, startSeconds: resolved.isHls ? 0 : position });
-  }, [serverUrl, accessToken, audioIndex]);
+  }, [serverUrl, accessToken]);
 
   // initial negotiate, once per rawItemId, after item load
   useEffect(() => {
     if (!item?.Id || startedFor.current === rawItemId) return;
+    startedFor.current = rawItemId; // claim synchronously, before any await (StrictMode-safe)
     let active = true; setError(null);
     (async () => {
       const { id: playId, startTicks } = await resolvePlayableItem(api, userId, item);
       const { mediaSource: ms, playSessionId } = await fetchPlaybackInfo(api, userId, playId, { startTicks });
       if (!active) return;
-      startedFor.current = rawItemId;
       setAudioIndex(defaultAudioIndex(ms));
       setSubtitleIndex(defaultSubtitleIndex(ms));
       apply(ms, playSessionId, playId, startTicks / 10_000_000);
@@ -73,7 +72,7 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
 
   const setSubtitleTrack = useCallback(async (index: number | null) => {
     setSubtitleIndex(index ?? undefined);
-    const target = index == null ? null : getSubtitleTracks(mediaSource ?? {} as MediaSourceInfo).find((t) => t.index === index);
+    const target = index == null || !mediaSource ? null : getSubtitleTracks(mediaSource).find((t) => t.index === index);
     // External subs render client-side (VideoPlayer swaps the <track>); no renegotiation.
     if (target && target.deliveryMethod === 'External') return;
     await renegotiate({ subtitleStreamIndex: index ?? -1, position: getPosition() });
