@@ -1,0 +1,6 @@
+.row { margin: 0 0 3vw; }
+.title { font-size: clamp(14px,1.4vw,24px); font-weight: 700; color: #e5e5e5; padding: 0 var(--nf-inset); margin-bottom: 8px; }
+.strip { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 2*var(--nf-inset) - 20px)/6); gap: var(--nf-card-gap); padding: 0 var(--nf-inset); }
+.tile { aspect-ratio: 16/9; border-radius: var(--nf-radius); background: linear-gradient(90deg, #1a1a1a, #2a2a2a, #1a1a1a); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .tile { animation: none; } }

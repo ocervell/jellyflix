@@ -4,6 +4,7 @@ import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import TopNav from '../components/nav/TopNav';
 import Billboard from '../components/home/Billboard';
 import Row from '../components/row/Row';
+import RowSkeleton from '../components/common/RowSkeleton';
 import DetailModal from '../components/detail/DetailModal';
 import { useUserViews } from '../hooks/api/useUserViews';
 import { useResumeItems } from '../hooks/api/useResumeItems';
@@ -19,15 +20,15 @@ function LatestRow({ view, onOpen, onPlay }: { view: BaseItemDto; onOpen: (i: Ba
 export default function Home() {
   const navigate = useNavigate();
   const { data: views = [] } = useUserViews();
-  const { data: resume = [] } = useResumeItems();
-  const { data: nextUp = [] } = useNextUp();
+  const resumeQ = useResumeItems();
+  const nextUpQ = useNextUp();
   const [detail, setDetail] = useState<BaseItemDto | null>(null); // Task 13 renders DetailModal from this
 
   const mediaViews = useMemo(
     () => views.filter((v) => v.CollectionType === 'movies' || v.CollectionType === 'tvshows'),
     [views],
   );
-  const hero = resume[0] ?? nextUp[0] ?? undefined;
+  const hero = resumeQ.data?.[0] ?? nextUpQ.data?.[0] ?? undefined;
 
   const onOpen = (i: BaseItemDto) => setDetail(i);
   const onPlay = (i: BaseItemDto) => navigate(`/watch/${i.Id}`);
@@ -37,8 +38,8 @@ export default function Home() {
       <TopNav />
       {hero && <Billboard item={hero} onPlay={onPlay} onMoreInfo={onOpen} />}
       <div className={styles.rows}>
-        <Row title="Continue Watching" items={resume} onOpen={onOpen} onPlay={onPlay} />
-        <Row title="Next Up" items={nextUp} onOpen={onOpen} onPlay={onPlay} />
+        {resumeQ.isLoading ? <RowSkeleton title="Continue Watching" /> : <Row title="Continue Watching" items={resumeQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />}
+        {nextUpQ.isLoading ? <RowSkeleton title="Next Up" /> : <Row title="Next Up" items={nextUpQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />}
         {mediaViews.map((v) => <LatestRow key={v.Id} view={v} onOpen={onOpen} onPlay={onPlay} />)}
       </div>
       {detail?.Id && (
