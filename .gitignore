@@ -5,3 +5,6 @@ dist/
 .env.local
 *.log
 .superpowers/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
