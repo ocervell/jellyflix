@@ -1,0 +1,35 @@
+import { renderHook, act, waitFor } from '@testing-library/react';
+import { expect, test, vi } from 'vitest';
+
+vi.mock('../useApi', () => ({ useApi: () => ({ api: {}, session: { userId: 'u', serverUrl: '/jf', accessToken: 't', userName: 'x' } }) }));
+vi.mock('../../lib/jellyfin/device', () => ({ getDeviceId: () => 'dev' }));
+vi.mock('../api/useItem', () => ({ useItem: () => ({ data: { Id: 'ep1' } }) }));
+const fetchPlaybackInfo = vi.fn();
+vi.mock('../../lib/jellyfin/playback', async (orig) => ({
+  ...(await orig<typeof import('../../lib/jellyfin/playback')>()),
+  fetchPlaybackInfo: (...a: unknown[]) => fetchPlaybackInfo(...a),
+  stopEncoding: vi.fn().mockResolvedValue(undefined),
+  resolvePlayableItem: vi.fn().mockResolvedValue({ id: 'ep1', startTicks: 0 }),
+  resolveStreamUrl: () => ({ url: 'http://x/master.m3u8', isHls: true }),
+}));
+
+import { usePlaybackSession } from './usePlaybackSession';
+
+const MS = { Id: 'm', MediaStreams: [{ Index: 1, Type: 'Audio', Language: 'eng', IsDefault: true }, { Index: 2, Type: 'Audio', Language: 'fre' }] };
+
+test('negotiates once and exposes audio tracks', async () => {
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps' });
+  const { result } = renderHook(() => usePlaybackSession('ep1', () => 0));
+  await waitFor(() => expect(result.current.stream).not.toBeNull());
+  expect(result.current.audioTracks.map((t) => t.index)).toEqual([1, 2]);
+  expect(fetchPlaybackInfo).toHaveBeenCalledTimes(1);
+});
+
+test('setAudioTrack renegotiates at the given position', async () => {
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps' });
+  const { result } = renderHook(() => usePlaybackSession('ep1', () => 42));
+  await waitFor(() => expect(result.current.stream).not.toBeNull());
+  await act(async () => { await result.current.setAudioTrack(2); });
+  const lastCall = fetchPlaybackInfo.mock.calls[fetchPlaybackInfo.mock.calls.length - 1]!;
+  expect(lastCall[3]).toMatchObject({ audioStreamIndex: 2, startTicks: 42 * 10_000_000 });
+});
