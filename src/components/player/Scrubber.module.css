@@ -1,0 +1,7 @@
+.bar { position: relative; height: 16px; display: flex; align-items: center; cursor: pointer; touch-action: none; }
+.track, .buffered, .played { position: absolute; height: 4px; border-radius: 2px; }
+.track { left: 0; right: 0; background: rgba(255,255,255,.3); }
+.buffered { left: 0; background: rgba(255,255,255,.5); }
+.played { left: 0; background: var(--nf-red); }
+.knob { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: var(--nf-red); transform: translateX(-50%); }
+.bar:focus-visible { outline: 2px solid var(--nf-white); outline-offset: 4px; }
