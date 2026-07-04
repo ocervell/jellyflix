@@ -1,3 +1,0 @@
-.card { display: block; width: 100%; text-align: left; }
-.frame { position: relative; aspect-ratio: 16 / 9; border-radius: var(--nf-radius); overflow: hidden; background: var(--nf-elevated-2); }
-.fallbackTitle { position: absolute; inset: 0; display: grid; place-items: center; padding: 8px; text-align: center; font-weight: 700; color: var(--nf-white); }

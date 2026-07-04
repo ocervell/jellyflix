@@ -10,9 +10,9 @@ import { useNextUp } from '../hooks/api/useNextUp';
 import { useLatestMedia } from '../hooks/api/useLatestMedia';
 import styles from './Home.module.css';
 
-function LatestRow({ view, onOpen }: { view: BaseItemDto; onOpen: (i: BaseItemDto) => void }) {
+function LatestRow({ view, onOpen, onPlay }: { view: BaseItemDto; onOpen: (i: BaseItemDto) => void; onPlay: (i: BaseItemDto) => void }) {
   const { data = [] } = useLatestMedia(view.Id ?? '');
-  return <Row title={`Latest ${view.Name}`} items={data} onOpen={onOpen} />;
+  return <Row title={`Latest ${view.Name}`} items={data} onOpen={onOpen} onPlay={onPlay} />;
 }
 
 export default function Home() {
@@ -36,9 +36,9 @@ export default function Home() {
       <TopNav />
       {hero && <Billboard item={hero} onPlay={onPlay} onMoreInfo={onOpen} />}
       <div className={styles.rows}>
-        <Row title="Continue Watching" items={resume} onOpen={onOpen} />
-        <Row title="Next Up" items={nextUp} onOpen={onOpen} />
-        {mediaViews.map((v) => <LatestRow key={v.Id} view={v} onOpen={onOpen} />)}
+        <Row title="Continue Watching" items={resume} onOpen={onOpen} onPlay={onPlay} />
+        <Row title="Next Up" items={nextUp} onOpen={onOpen} onPlay={onPlay} />
+        {mediaViews.map((v) => <LatestRow key={v.Id} view={v} onOpen={onOpen} onPlay={onPlay} />)}
       </div>
       {/* Task 13: {detail && <DetailModal itemId={detail.Id} onClose={() => setDetail(null)} onPlay={onPlay} />} */}
     </div>

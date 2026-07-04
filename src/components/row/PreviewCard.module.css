@@ -1,0 +1,16 @@
+.card { position: relative; }
+.art { display: block; width: 100%; position: relative; aspect-ratio: 16/9; border-radius: var(--nf-radius); overflow: hidden; background: var(--nf-elevated-2); }
+.fallbackTitle { position: absolute; inset: 0; display: grid; place-items: center; padding: 8px; text-align: center; font-weight: 700; }
+.panel { position: absolute; left: 0; right: 0; top: 100%; background: var(--nf-elevated-2); border-radius: 0 0 var(--nf-radius) var(--nf-radius);
+  padding: 12px; opacity: 0; pointer-events: none; transform: translateY(-6px); transition: opacity .2s ease; box-shadow: 0 12px 24px rgba(0,0,0,.6); }
+.actions { display: flex; gap: 8px; margin-bottom: 8px; }
+.play, .more { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--nf-outline); display: grid; place-items: center; }
+.play { background: #fff; color: #000; border-color: #fff; }
+.meta { display: flex; gap: 8px; font-size: 13px; color: var(--nf-grey); }
+.name { margin-top: 4px; font-weight: 700; font-size: 14px; }
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .card { transition: transform .3s var(--nf-ease); transition-delay: .4s; }
+  .card:hover { transform: scale(1.4); z-index: 20; transition-delay: 0s; }
+  .card:hover .panel { opacity: 1; pointer-events: auto; transform: translateY(0); }
+}
