@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { useItem } from '../hooks/api/useItem';
@@ -7,6 +7,7 @@ import { useAbrController } from '../hooks/player/useAbrController';
 import type { EngineState } from '../hooks/player/useVideoEngine';
 import { getBackdropUrl } from '../lib/jellyfin/images';
 import { reportStart, reportProgress, reportStopped } from '../lib/jellyfin/reporting';
+import { selectTrickplay } from '../lib/jellyfin/trickplay';
 import VideoPlayer from '../components/player/VideoPlayer';
 
 const IDLE: EngineState = {
@@ -69,6 +70,11 @@ export default function Watch() {
     navigate(-1);
   }, [api, navigate]);
 
+  const trickplay = useMemo(
+    () => item && session.mediaSource?.Id ? selectTrickplay(item, session.mediaSource.Id, window.screen.width, window.devicePixelRatio) : null,
+    [item, session.mediaSource?.Id],
+  );
+
   const errorMessage = session.error || playerError;
   if (errorMessage) {
     return (
@@ -89,6 +95,7 @@ export default function Watch() {
       onBack={onBack}
       onError={setPlayerError}
       onEngineState={setEngineState}
+      trickplay={trickplay}
     />
   );
 }

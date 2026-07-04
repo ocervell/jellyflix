@@ -6,11 +6,11 @@ import { formatTime } from '../../lib/format';
 import styles from './ControlBar.module.css';
 
 export default function ControlBar({
-  engine, title, onBack, onScrub, onHover, menuOpen, extras,
+  engine, title, onBack, onScrub, onHover, menuOpen, extras, bubbleSlot,
 }: {
   engine: VideoEngine; title: string; onBack: () => void;
   onScrub: (s: number) => void; onHover: (info: { seconds: number; x: number } | null) => void;
-  menuOpen: boolean; extras: React.ReactNode;
+  menuOpen: boolean; extras: React.ReactNode; bubbleSlot?: React.ReactNode;
 }) {
   const { state } = engine;
   const { visible, ping } = useAutoHide(!state.paused && !menuOpen);
@@ -46,6 +46,7 @@ export default function ControlBar({
         </button>
       </div>
       <div className={styles.bottom}>
+        {bubbleSlot}
         <Scrubber currentTime={state.currentTime} duration={state.duration} bufferedEnd={state.bufferedEnd} onScrub={onScrub} onHover={onHover} />
         <div className={styles.buttons}>
           <button onClick={engine.togglePlay} aria-label={state.paused ? 'Play' : 'Pause'}>{state.paused ? '▶' : '❚❚'}</button>

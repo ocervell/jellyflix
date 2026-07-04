@@ -2,21 +2,25 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useVideoEngine, type EngineState } from '../../hooks/player/useVideoEngine';
 import ControlBar from './ControlBar';
 import TrackMenu from './TrackMenu';
+import TrickplayBubble from './TrickplayBubble';
 import { subtitleTrackUrl } from '../../lib/jellyfin/mediaStreams';
 import { useApi } from '../../hooks/useApi';
 import type { PlaybackSession } from '../../hooks/player/usePlaybackSession';
+import type { Trickplay } from '../../lib/jellyfin/trickplay';
 import styles from './VideoPlayer.module.css';
 
 export default function VideoPlayer({
-  session, poster, title, onProgress, onBack, onError, onEngineState,
+  session, poster, title, onProgress, onBack, onError, onEngineState, trickplay,
 }: {
   session: PlaybackSession; poster: string | null; title: string;
   onProgress: (seconds: number, paused: boolean) => void; onBack: () => void;
   onError?: (msg: string) => void; onEngineState?: (s: EngineState) => void;
+  trickplay?: Trickplay | null;
 }) {
   const { session: appSession } = useApi();
   const stream = session.stream!;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hover, setHover] = useState<{ seconds: number; x: number } | null>(null);
   const engine = useVideoEngine({ src: stream.url, isHls: stream.isHls, startSeconds: stream.startSeconds, onError: (msg) => onError?.(msg) });
   const { videoRef } = engine;
 
@@ -65,7 +69,10 @@ export default function VideoPlayer({
           return <track key={t.index} kind="subtitles" srcLang={t.language ?? 'und'} label={t.label} src={url} />;
         })}
       </video>
-      <ControlBar engine={engine} title={title} onBack={onBack} onScrub={onScrub} onHover={() => {}} menuOpen={menuOpen} extras={extras} />
+      <ControlBar
+        engine={engine} title={title} onBack={onBack} onScrub={onScrub} onHover={setHover} menuOpen={menuOpen} extras={extras}
+        bubbleSlot={<TrickplayBubble trickplay={trickplay ?? null} serverUrl={appSession.serverUrl} token={appSession.accessToken} hover={hover} />}
+      />
     </div>
   );
 }
