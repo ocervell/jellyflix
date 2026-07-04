@@ -1,0 +1,12 @@
+.nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nf-nav-h); z-index: 100;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 var(--nf-inset);
+  background: linear-gradient(180deg, rgba(0,0,0,.7), transparent); transition: background-color .4s ease; }
+.solid { background: var(--nf-bg); }
+.left { display: flex; align-items: center; gap: 32px; }
+.logo { color: var(--nf-red); font-weight: 800; letter-spacing: 1px; font-size: 22px; }
+.links { display: flex; gap: 20px; }
+.links a { color: var(--nf-grey); font-size: 14px; }
+.links a:hover { color: var(--nf-white); }
+.logout { color: var(--nf-grey); font-size: 14px; }
+.logout:hover { color: var(--nf-white); }
+@media (max-width: 800px) { .links { display: none; } }

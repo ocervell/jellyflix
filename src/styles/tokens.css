@@ -1,0 +1,11 @@
+:root {
+  --nf-red: #E50914; --nf-red-hover: #F40612; --nf-red-active: #B20710;
+  --nf-bg: #141414; --nf-black: #000; --nf-elevated: #2F2F2F; --nf-elevated-2: #181818;
+  --nf-white: #FFF; --nf-grey: #B3B3B3; --nf-muted: #808080; --nf-match: #46D369;
+  --nf-scrim: rgba(0,0,0,.7); --nf-outline: rgba(255,255,255,.5);
+  --nf-inset: 4vw; --nf-card-gap: 4px; --nf-radius: 4px;
+  --nf-nav-h: 68px;
+  --nf-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --nf-ease: cubic-bezier(.4,0,.2,1);
+}
+html { color-scheme: dark; }

@@ -1,0 +1,17 @@
+.billboard { position: relative; height: 80vh; min-height: 480px; margin-bottom: -6vw; }
+.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.scrim { position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, rgba(20,20,20,.9) 0%, rgba(20,20,20,.4) 40%, transparent 60%),
+    linear-gradient(0deg, var(--nf-bg) 0%, transparent 35%); }
+.content { position: absolute; left: var(--nf-inset); bottom: 12vw; max-width: 40%; }
+.logo { max-width: 100%; max-height: 180px; margin-bottom: 16px; }
+.title { font-size: clamp(28px, 4vw, 64px); font-weight: 800; margin-bottom: 16px; }
+.synopsis { font-size: 18px; line-height: 1.4; text-shadow: 0 2px 4px rgba(0,0,0,.6); margin-bottom: 20px; }
+.buttons { display: flex; gap: 12px; }
+.play, .info { display: inline-flex; align-items: center; gap: 8px; padding: 8px 24px; border-radius: var(--nf-radius); font-weight: 700; }
+.play { background: #fff; color: #000; }
+.play:hover { background: rgba(255,255,255,.75); }
+.info { background: rgba(109,109,110,.7); color: #fff; }
+.info:hover { background: rgba(109,109,110,.4); }
+@media (max-width: 800px) { .content { max-width: 70%; bottom: 20vw; } }
