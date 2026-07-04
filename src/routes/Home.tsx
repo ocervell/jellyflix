@@ -4,6 +4,7 @@ import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import TopNav from '../components/nav/TopNav';
 import Billboard from '../components/home/Billboard';
 import Row from '../components/row/Row';
+import DetailModal from '../components/detail/DetailModal';
 import { useUserViews } from '../hooks/api/useUserViews';
 import { useResumeItems } from '../hooks/api/useResumeItems';
 import { useNextUp } from '../hooks/api/useNextUp';
@@ -20,7 +21,7 @@ export default function Home() {
   const { data: views = [] } = useUserViews();
   const { data: resume = [] } = useResumeItems();
   const { data: nextUp = [] } = useNextUp();
-  const [_detail, setDetail] = useState<BaseItemDto | null>(null); // Task 13 renders DetailModal from this
+  const [detail, setDetail] = useState<BaseItemDto | null>(null); // Task 13 renders DetailModal from this
 
   const mediaViews = useMemo(
     () => views.filter((v) => v.CollectionType === 'movies' || v.CollectionType === 'tvshows'),
@@ -40,7 +41,9 @@ export default function Home() {
         <Row title="Next Up" items={nextUp} onOpen={onOpen} onPlay={onPlay} />
         {mediaViews.map((v) => <LatestRow key={v.Id} view={v} onOpen={onOpen} onPlay={onPlay} />)}
       </div>
-      {/* Task 13: {detail && <DetailModal itemId={detail.Id} onClose={() => setDetail(null)} onPlay={onPlay} />} */}
+      {detail?.Id && (
+        <DetailModal itemId={detail.Id} onClose={() => setDetail(null)} onPlay={onPlay} />
+      )}
     </div>
   );
 }
