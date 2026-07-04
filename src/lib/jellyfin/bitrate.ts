@@ -18,7 +18,7 @@ export function normalizeBitrate(bps: number): number {
 
 async function measureStage(api: Api, size: number, now: () => number): Promise<number> {
   const start = now();
-  const { data } = await api.axiosInstance.get(`${api.basePath}/Playback/BitrateTest`, { params: { Size: size }, responseType: 'blob' });
+  const { data } = await api.axiosInstance.get(`${api.basePath}/Playback/BitrateTest`, { params: { Size: size, api_key: api.accessToken }, responseType: 'blob' });
   const bytes = (data as Blob).size ?? size;
   const seconds = Math.max((now() - start) / 1000, 0.001);
   return (bytes * 8) / seconds;

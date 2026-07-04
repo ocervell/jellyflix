@@ -79,6 +79,6 @@ export function resolveStreamUrl(
 export async function stopEncoding(api: Api, deviceId: string, playSessionId: string): Promise<void> {
   if (!playSessionId) return;
   try {
-    await api.axiosInstance.delete(`${api.basePath}/Videos/ActiveEncodings`, { params: { deviceId, playSessionId } });
+    await api.axiosInstance.delete(`${api.basePath}/Videos/ActiveEncodings`, { params: { deviceId, playSessionId, api_key: api.accessToken } });
   } catch { /* best-effort */ }
 }
