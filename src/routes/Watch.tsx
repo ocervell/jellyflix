@@ -20,8 +20,10 @@ export default function Watch() {
   const navigate = useNavigate();
   const { api } = useApi();
   const { data: item } = useItem(itemId);
-  const positionRef = useRef(0);
-  const session = usePlaybackSession(itemId, () => positionRef.current);
+  const positionRef = useRef(0); // relative to the engine's currentTime (HLS transcodes restart at 0)
+  const baseRef = useRef(0); // absolute-position offset for the current stream (0 for direct/progressive)
+  const session = usePlaybackSession(itemId, () => baseRef.current + positionRef.current);
+  baseRef.current = session.positionBaseSeconds;
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [engineState, setEngineState] = useState<EngineState | null>(null);
 
@@ -32,22 +34,32 @@ export default function Watch() {
     bandwidth: session.bandwidth,
     currentBitrate: session.currentBitrate,
     isTranscoding: session.isTranscoding,
-    onShift: (b) => { void session.renegotiate({ maxBitrate: b, position: positionRef.current }); },
+    onShift: (b) => { void session.renegotiate({ maxBitrate: b, position: baseRef.current + positionRef.current }); },
   });
 
-  // reportStart once when a stream first appears
+  // reportStart once when a stream first appears; report Stopped for the previous
+  // playSessionId first (renegotiation mints a new one, which would otherwise orphan
+  // the prior server-side play session).
   const reportedRef = useRef<string | null>(null);
+  const prevReportedRef = useRef<{ playId: string; playSessionId: string } | null>(null);
   useEffect(() => {
     if (!session.stream || !session.playSessionId || reportedRef.current === session.playSessionId) return;
     reportedRef.current = session.playSessionId;
+    const prev = prevReportedRef.current;
+    if (prev && prev.playSessionId && prev.playSessionId !== session.playSessionId) {
+      void reportStopped(api, { itemId: prev.playId, playSessionId: prev.playSessionId, positionTicks: Math.round((baseRef.current + positionRef.current) * 1e7) }).catch(() => {});
+    }
     positionRef.current = session.stream.startSeconds;
-    void reportStart(api, { itemId: session.playId, playSessionId: session.playSessionId, positionTicks: Math.round(session.stream.startSeconds * 1e7) }).catch(() => {});
-  }, [session.stream, session.playSessionId, session.playId, api]);
+    const absoluteStart = session.positionBaseSeconds + session.stream.startSeconds;
+    void reportStart(api, { itemId: session.playId, playSessionId: session.playSessionId, positionTicks: Math.round(absoluteStart * 1e7) }).catch(() => {});
+    prevReportedRef.current = { playId: session.playId, playSessionId: session.playSessionId };
+  }, [session.stream, session.playSessionId, session.playId, session.positionBaseSeconds, api]);
 
   const onProgress = useCallback((seconds: number, paused: boolean) => {
     positionRef.current = seconds;
     if (!session.playSessionId) return;
-    void reportProgress(api, { itemId: session.playId, playSessionId: session.playSessionId, positionTicks: Math.round(seconds * 1e7), isPaused: paused }).catch(() => {});
+    const positionTicks = Math.round((baseRef.current + seconds) * 1e7);
+    void reportProgress(api, { itemId: session.playId, playSessionId: session.playSessionId, positionTicks, isPaused: paused }).catch(() => {});
   }, [api, session.playId, session.playSessionId]);
 
   // Mirror session.playId/playSessionId in a ref for unmount cleanup
@@ -58,13 +70,15 @@ export default function Watch() {
   useEffect(() => () => {
     const p = playRefRef.current;
     if (!p.playSessionId) return;
-    void reportStopped(api, { itemId: p.playId, playSessionId: p.playSessionId, positionTicks: Math.round(positionRef.current * 1e7) }).catch(() => {});
+    const positionTicks = Math.round((baseRef.current + positionRef.current) * 1e7);
+    void reportStopped(api, { itemId: p.playId, playSessionId: p.playSessionId, positionTicks }).catch(() => {});
   }, [api]);
 
   const onBack = useCallback(() => {
     const p = playRefRef.current;
     if (p.playSessionId) {
-      void reportStopped(api, { itemId: p.playId, playSessionId: p.playSessionId, positionTicks: Math.round(positionRef.current * 1e7) }).catch(() => {});
+      const positionTicks = Math.round((baseRef.current + positionRef.current) * 1e7);
+      void reportStopped(api, { itemId: p.playId, playSessionId: p.playSessionId, positionTicks }).catch(() => {});
       playRefRef.current = { playId: p.playId, playSessionId: '' };
     }
     navigate(-1);

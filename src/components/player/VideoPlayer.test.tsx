@@ -26,6 +26,7 @@ test('renders a video element with src for progressive source', () => {
     bandwidth: 0,
     currentBitrate: 0,
     isTranscoding: false,
+    positionBaseSeconds: 0,
     setAudioTrack: vi.fn(),
     setSubtitleTrack: vi.fn(),
     renegotiate: vi.fn(),
