@@ -8,7 +8,7 @@ vi.mock('@jellyfin/sdk/lib/utils/api/image-api', () => ({
   }),
 }));
 
-import { getCardImageUrl, getBackdropUrl } from './images';
+import { getCardImageUrl, getBackdropUrl, getLogoUrl, getPosterUrl } from './images';
 
 const api = {} as never;
 
@@ -35,4 +35,88 @@ test('backdrop uses BackdropImageTags[0]', () => {
 test('returns null when no usable image', () => {
   const empty = { Id: '5', ImageTags: {} } as unknown as BaseItemDto;
   expect(getCardImageUrl(api, empty)).toBeNull();
+});
+
+test('getCardImageUrl: ParentThumb fallback', () => {
+  const item = {
+    Id: '6',
+    ImageTags: {},
+    ParentThumbItemId: 'p1',
+    ParentThumbImageTag: 'ptt',
+  } as unknown as BaseItemDto;
+  expect(getCardImageUrl(api, item, { width: 320 }))
+    .toBe('/jf/Items/p1/Images/Thumb?tag=ptt&fillWidth=320');
+});
+
+test('getCardImageUrl: Series ordering (SeriesThumb before SeriesPrimary)', () => {
+  const item = {
+    Id: '7',
+    ImageTags: {},
+    SeriesId: 's1',
+    SeriesThumbImageTag: 'st',
+    SeriesPrimaryImageTag: 'sp',
+  } as unknown as BaseItemDto;
+  expect(getCardImageUrl(api, item, { width: 320 }))
+    .toBe('/jf/Items/s1/Images/Thumb?tag=st&fillWidth=320');
+});
+
+test('getCardImageUrl: SeriesPrimary fallback', () => {
+  const item = {
+    Id: '8',
+    ImageTags: {},
+    SeriesId: 's2',
+    SeriesPrimaryImageTag: 'sp',
+  } as unknown as BaseItemDto;
+  expect(getCardImageUrl(api, item, { width: 320 }))
+    .toBe('/jf/Items/s2/Images/Primary?tag=sp&fillWidth=320');
+});
+
+test('getBackdropUrl: parent fallback', () => {
+  const item = {
+    Id: '9',
+    BackdropImageTags: [],
+    ParentBackdropItemId: 'pb1',
+    ParentBackdropImageTags: ['pbd'],
+  } as unknown as BaseItemDto;
+  expect(getBackdropUrl(api, item, { width: 1280 }))
+    .toBe('/jf/Items/pb1/Images/Backdrop?tag=pbd&fillWidth=1280');
+});
+
+test('getLogoUrl: item Logo', () => {
+  const item = {
+    Id: '10',
+    ImageTags: { Logo: 'lg' },
+  } as unknown as BaseItemDto;
+  expect(getLogoUrl(api, item))
+    .toBe('/jf/Items/10/Images/Logo?tag=lg&fillWidth=400');
+});
+
+test('getLogoUrl: parent Logo fallback', () => {
+  const item = {
+    Id: '11',
+    ImageTags: {},
+    ParentLogoItemId: 'pl1',
+    ParentLogoImageTag: 'plt',
+  } as unknown as BaseItemDto;
+  expect(getLogoUrl(api, item))
+    .toBe('/jf/Items/pl1/Images/Logo?tag=plt&fillWidth=400');
+});
+
+test('getLogoUrl: returns null when no logo', () => {
+  const item = { Id: '12', ImageTags: {} } as unknown as BaseItemDto;
+  expect(getLogoUrl(api, item)).toBeNull();
+});
+
+test('getPosterUrl: item Primary', () => {
+  const item = {
+    Id: '13',
+    ImageTags: { Primary: 'pr' },
+  } as unknown as BaseItemDto;
+  expect(getPosterUrl(api, item, { width: 240 }))
+    .toBe('/jf/Items/13/Images/Primary?tag=pr&fillWidth=240');
+});
+
+test('getPosterUrl: returns null when no Primary', () => {
+  const item = { Id: '14', ImageTags: {} } as unknown as BaseItemDto;
+  expect(getPosterUrl(api, item)).toBeNull();
 });
