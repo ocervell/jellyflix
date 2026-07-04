@@ -88,6 +88,7 @@ export default function Watch() {
       isHls={stream.isHls}
       poster={item ? getBackdropUrl(api, item, { width: 1280 }) : null}
       startSeconds={stream.startSeconds}
+      title={item?.Name ?? ''}
       onProgress={onProgress}
       onBack={onBack}
       onError={onPlayerError}
