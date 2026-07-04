@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { useItem } from '../hooks/api/useItem';
@@ -14,13 +14,15 @@ export default function Watch() {
   const { data: item } = useItem(itemId);
   const positionRef = useRef(0);
   const session = usePlaybackSession(itemId, () => positionRef.current);
+  const [playerError, setPlayerError] = useState<string | null>(null);
 
   // reportStart once when a stream first appears
   const reportedRef = useRef<string | null>(null);
   useEffect(() => {
     if (!session.stream || !session.playSessionId || reportedRef.current === session.playSessionId) return;
     reportedRef.current = session.playSessionId;
-    void reportStart(api, { itemId: session.playId, playSessionId: session.playSessionId, positionTicks: Math.round(positionRef.current * 1e7) }).catch(() => {});
+    positionRef.current = session.stream.startSeconds;
+    void reportStart(api, { itemId: session.playId, playSessionId: session.playSessionId, positionTicks: Math.round(session.stream.startSeconds * 1e7) }).catch(() => {});
   }, [session.stream, session.playSessionId, session.playId, api]);
 
   const onProgress = useCallback((seconds: number, paused: boolean) => {
@@ -44,14 +46,16 @@ export default function Watch() {
     const p = playRefRef.current;
     if (p.playSessionId) {
       void reportStopped(api, { itemId: p.playId, playSessionId: p.playSessionId, positionTicks: Math.round(positionRef.current * 1e7) }).catch(() => {});
+      playRefRef.current = { playId: p.playId, playSessionId: '' };
     }
     navigate(-1);
   }, [api, navigate]);
 
-  if (session.error) {
+  const errorMessage = session.error || playerError;
+  if (errorMessage) {
     return (
       <div style={{ display: 'grid', placeItems: 'center', height: '100%', gap: '1rem' }}>
-        <p>{session.error}</p>
+        <p>{errorMessage}</p>
         <button onClick={() => navigate(-1)}>Back</button>
       </div>
     );
@@ -65,6 +69,7 @@ export default function Watch() {
       title={item?.Name ?? ''}
       onProgress={onProgress}
       onBack={onBack}
+      onError={setPlayerError}
     />
   );
 }

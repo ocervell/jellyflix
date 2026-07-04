@@ -8,15 +8,16 @@ import type { PlaybackSession } from '../../hooks/player/usePlaybackSession';
 import styles from './VideoPlayer.module.css';
 
 export default function VideoPlayer({
-  session, poster, title, onProgress, onBack,
+  session, poster, title, onProgress, onBack, onError,
 }: {
   session: PlaybackSession; poster: string | null; title: string;
   onProgress: (seconds: number, paused: boolean) => void; onBack: () => void;
+  onError?: (msg: string) => void;
 }) {
   const { session: appSession } = useApi();
   const stream = session.stream!;
   const [menuOpen, setMenuOpen] = useState(false);
-  const engine = useVideoEngine({ src: stream.url, isHls: stream.isHls, startSeconds: stream.startSeconds, onError: () => {} });
+  const engine = useVideoEngine({ src: stream.url, isHls: stream.isHls, startSeconds: stream.startSeconds, onError: (msg) => onError?.(msg) });
   const { videoRef } = engine;
 
   const onProgressRef = useRef(onProgress); onProgressRef.current = onProgress;
@@ -29,10 +30,13 @@ export default function VideoPlayer({
     return () => { window.clearInterval(id); video.removeEventListener('pause', report); video.removeEventListener('play', report); video.removeEventListener('seeked', report); };
   }, [videoRef]);
 
-  // External subtitle <track>s; show the selected one.
+  // External subtitle <track>s with a resolvable URL; show the selected one.
+  // Filtered so the rendered <track> list stays 1:1 with video.textTracks.
   const externalSubs = useMemo(
-    () => session.subtitleTracks.filter((t) => t.deliveryMethod === 'External'),
-    [session.subtitleTracks],
+    () => session.subtitleTracks.filter(
+      (t) => t.deliveryMethod === 'External' && subtitleTrackUrl(appSession.serverUrl, appSession.accessToken, t) !== null,
+    ),
+    [session.subtitleTracks, appSession.serverUrl, appSession.accessToken],
   );
   useEffect(() => {
     const video = videoRef.current; if (!video) return;
@@ -51,10 +55,10 @@ export default function VideoPlayer({
 
   return (
     <div className={styles.wrap}>
-      <video ref={videoRef} className={styles.video} poster={poster ?? undefined} autoPlay crossOrigin="anonymous">
+      <video ref={videoRef} className={styles.video} poster={poster ?? undefined} autoPlay>
         {externalSubs.map((t) => {
-          const url = subtitleTrackUrl(appSession.serverUrl, appSession.accessToken, t);
-          return url ? <track key={t.index} kind="subtitles" srcLang={t.language ?? 'und'} label={t.label} src={url} /> : null;
+          const url = subtitleTrackUrl(appSession.serverUrl, appSession.accessToken, t)!;
+          return <track key={t.index} kind="subtitles" srcLang={t.language ?? 'und'} label={t.label} src={url} />;
         })}
       </video>
       <ControlBar engine={engine} title={title} onBack={onBack} onScrub={onScrub} onHover={() => {}} menuOpen={menuOpen} extras={extras} />
