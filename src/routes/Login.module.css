@@ -1,0 +1,8 @@
+.wrap { min-height: 100%; display: grid; place-items: center; background: #000; }
+.card { display: flex; flex-direction: column; gap: 16px; width: 320px; padding: 40px; background: rgba(0,0,0,.75); border-radius: 8px; }
+.brand { color: var(--nf-red); font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
+.card label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--nf-grey); }
+.card input { padding: 12px; background: var(--nf-elevated); border-radius: var(--nf-radius); color: var(--nf-white); }
+.card button { padding: 12px; background: var(--nf-red); color: #fff; font-weight: 700; border-radius: var(--nf-radius); }
+.card button:hover { background: var(--nf-red-hover); }
+.error { color: #f6c343; font-size: 14px; }
