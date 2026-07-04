@@ -4,6 +4,7 @@ import { expect, test, vi } from 'vitest';
 vi.mock('../useApi', () => ({ useApi: () => ({ api: {}, session: { userId: 'u', serverUrl: '/jf', accessToken: 't', userName: 'x' } }) }));
 vi.mock('../../lib/jellyfin/device', () => ({ getDeviceId: () => 'dev' }));
 vi.mock('../api/useItem', () => ({ useItem: () => ({ data: { Id: 'ep1' } }) }));
+vi.mock('../../lib/jellyfin/bitrate', () => ({ measureBandwidth: vi.fn().mockResolvedValue(8_000_000) }));
 const fetchPlaybackInfo = vi.fn();
 vi.mock('../../lib/jellyfin/playback', async (orig) => ({
   ...(await orig<typeof import('../../lib/jellyfin/playback')>()),

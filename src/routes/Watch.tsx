@@ -3,9 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { useItem } from '../hooks/api/useItem';
 import { usePlaybackSession } from '../hooks/player/usePlaybackSession';
+import { useAbrController } from '../hooks/player/useAbrController';
+import type { EngineState } from '../hooks/player/useVideoEngine';
 import { getBackdropUrl } from '../lib/jellyfin/images';
 import { reportStart, reportProgress, reportStopped } from '../lib/jellyfin/reporting';
 import VideoPlayer from '../components/player/VideoPlayer';
+
+const IDLE: EngineState = {
+  paused: true, currentTime: 0, duration: 0, bufferedEnd: 0,
+  volume: 1, muted: false, waiting: false, stallCount: 0,
+};
 
 export default function Watch() {
   const { itemId = '' } = useParams();
@@ -15,6 +22,17 @@ export default function Watch() {
   const positionRef = useRef(0);
   const session = usePlaybackSession(itemId, () => positionRef.current);
   const [playerError, setPlayerError] = useState<string | null>(null);
+  const [engineState, setEngineState] = useState<EngineState | null>(null);
+
+  // Mount ABR controller (unconditional top-level hook)
+  useAbrController({
+    engineState: engineState ?? IDLE,
+    getPosition: () => positionRef.current,
+    bandwidth: session.bandwidth,
+    currentBitrate: session.currentBitrate,
+    isTranscoding: session.isTranscoding,
+    onShift: (b) => { void session.renegotiate({ maxBitrate: b, position: positionRef.current }); },
+  });
 
   // reportStart once when a stream first appears
   const reportedRef = useRef<string | null>(null);
@@ -70,6 +88,7 @@ export default function Watch() {
       onProgress={onProgress}
       onBack={onBack}
       onError={setPlayerError}
+      onEngineState={setEngineState}
     />
   );
 }

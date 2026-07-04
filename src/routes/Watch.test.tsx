@@ -18,6 +18,7 @@ vi.mock('react-router-dom', () => ({
 }));
 vi.mock('../lib/jellyfin/device', () => ({ getDeviceId: () => 'dev' }));
 vi.mock('../lib/jellyfin/images', () => ({ getBackdropUrl: () => null }));
+vi.mock('../lib/jellyfin/bitrate', () => ({ measureBandwidth: vi.fn().mockResolvedValue(8_000_000) }));
 vi.mock('../components/player/VideoPlayer', () => ({ default: () => <div>player</div> }));
 
 const resolvePlayableItem = vi.fn().mockResolvedValue({ id: 'm1', startTicks: 500 });
@@ -50,5 +51,5 @@ test('setup runs exactly once as item transitions from undefined to loaded (no d
   await waitFor(() => expect(fetchPlaybackInfo).toHaveBeenCalledTimes(1));
   expect(resolvePlayableItem).toHaveBeenCalledTimes(1);
   expect(reportStart).toHaveBeenCalledTimes(1);
-  expect(fetchPlaybackInfo).toHaveBeenCalledWith({}, 'u', 'm1', { startTicks: 500 });
+  expect(fetchPlaybackInfo).toHaveBeenCalledWith({}, 'u', 'm1', { maxBitrate: 8_000_000, startTicks: 500 });
 });

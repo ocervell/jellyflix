@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useVideoEngine } from '../../hooks/player/useVideoEngine';
+import { useVideoEngine, type EngineState } from '../../hooks/player/useVideoEngine';
 import ControlBar from './ControlBar';
 import TrackMenu from './TrackMenu';
 import { subtitleTrackUrl } from '../../lib/jellyfin/mediaStreams';
@@ -8,11 +8,11 @@ import type { PlaybackSession } from '../../hooks/player/usePlaybackSession';
 import styles from './VideoPlayer.module.css';
 
 export default function VideoPlayer({
-  session, poster, title, onProgress, onBack, onError,
+  session, poster, title, onProgress, onBack, onError, onEngineState,
 }: {
   session: PlaybackSession; poster: string | null; title: string;
   onProgress: (seconds: number, paused: boolean) => void; onBack: () => void;
-  onError?: (msg: string) => void;
+  onError?: (msg: string) => void; onEngineState?: (s: EngineState) => void;
 }) {
   const { session: appSession } = useApi();
   const stream = session.stream!;
@@ -29,6 +29,10 @@ export default function VideoPlayer({
     video.addEventListener('pause', report); video.addEventListener('play', report); video.addEventListener('seeked', report);
     return () => { window.clearInterval(id); video.removeEventListener('pause', report); video.removeEventListener('play', report); video.removeEventListener('seeked', report); };
   }, [videoRef]);
+
+  useEffect(() => {
+    onEngineState?.(engine.state);
+  }, [engine.state, onEngineState]);
 
   // External subtitle <track>s with a resolvable URL; show the selected one.
   // Filtered so the rendered <track> list stays 1:1 with video.textTracks.

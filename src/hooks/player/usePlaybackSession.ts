@@ -5,6 +5,7 @@ import { getDeviceId } from '../../lib/jellyfin/device';
 import { useItem } from '../api/useItem';
 import { fetchPlaybackInfo, resolvePlayableItem, resolveStreamUrl, stopEncoding, type NegotiateParams } from '../../lib/jellyfin/playback';
 import { getAudioTracks, getSubtitleTracks, defaultAudioIndex, defaultSubtitleIndex, type AudioTrack, type SubtitleTrack } from '../../lib/jellyfin/mediaStreams';
+import { measureBandwidth } from '../../lib/jellyfin/bitrate';
 
 export type SessionStream = { url: string; isHls: boolean; startSeconds: number };
 export type PlaybackSession = {
@@ -12,6 +13,7 @@ export type PlaybackSession = {
   playId: string; playSessionId: string;
   audioTracks: AudioTrack[]; subtitleTracks: SubtitleTrack[];
   audioIndex?: number; subtitleIndex?: number; mediaSource: MediaSourceInfo | null;
+  bandwidth: number; currentBitrate: number; isTranscoding: boolean;
   setAudioTrack(index: number): Promise<void>;
   setSubtitleTrack(index: number | null): Promise<void>;
   renegotiate(p: NegotiateParams & { position: number }): Promise<void>;
@@ -26,6 +28,8 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
   const [mediaSource, setMediaSource] = useState<MediaSourceInfo | null>(null);
   const [audioIndex, setAudioIndex] = useState<number | undefined>();
   const [subtitleIndex, setSubtitleIndex] = useState<number | undefined>();
+  const [bandwidth, setBandwidth] = useState(0);
+  const [currentBitrate, setCurrentBitrate] = useState(0);
   const playRef = useRef<{ playId: string; playSessionId: string }>({ playId: '', playSessionId: '' });
   const startedFor = useRef<string | null>(null);
   const negId = useRef(0);
@@ -34,6 +38,7 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
     const resolved = resolveStreamUrl(serverUrl, accessToken, playId, ms, getDeviceId());
     playRef.current = { playId, playSessionId };
     setMediaSource(ms);
+    setCurrentBitrate(ms.Bitrate ?? 0);
     setStream({ ...resolved, startSeconds: resolved.isHls ? 0 : position });
   }, [serverUrl, accessToken]);
 
@@ -43,8 +48,10 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
     startedFor.current = rawItemId; // claim synchronously, before any await (StrictMode-safe)
     let active = true; setError(null);
     (async () => {
+      const bw = await measureBandwidth(api);
+      setBandwidth(bw);
       const { id: playId, startTicks } = await resolvePlayableItem(api, userId, item);
-      const { mediaSource: ms, playSessionId } = await fetchPlaybackInfo(api, userId, playId, { startTicks });
+      const { mediaSource: ms, playSessionId } = await fetchPlaybackInfo(api, userId, playId, { startTicks, maxBitrate: bw });
       if (!active) return;
       setAudioIndex(defaultAudioIndex(ms));
       setSubtitleIndex(defaultSubtitleIndex(ms));
@@ -62,6 +69,7 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
       maxBitrate: p.maxBitrate, audioStreamIndex: p.audioStreamIndex, subtitleStreamIndex: p.subtitleStreamIndex,
     });
     if (myId !== negId.current) return; // superseded
+    if (p.maxBitrate !== undefined) setCurrentBitrate(p.maxBitrate);
     apply(ms, nps, playId, p.position);
   }, [api, userId, apply]);
 
@@ -82,6 +90,7 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
     stream, error, playId: playRef.current.playId, playSessionId: playRef.current.playSessionId,
     audioTracks: mediaSource ? getAudioTracks(mediaSource) : [],
     subtitleTracks: mediaSource ? getSubtitleTracks(mediaSource) : [],
-    audioIndex, subtitleIndex, mediaSource, setAudioTrack, setSubtitleTrack, renegotiate,
+    audioIndex, subtitleIndex, mediaSource, bandwidth, currentBitrate, isTranscoding: stream?.isHls ?? false,
+    setAudioTrack, setSubtitleTrack, renegotiate,
   };
 }
