@@ -38,7 +38,6 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
     const resolved = resolveStreamUrl(serverUrl, accessToken, playId, ms, getDeviceId());
     playRef.current = { playId, playSessionId };
     setMediaSource(ms);
-    setCurrentBitrate(ms.Bitrate ?? 0);
     setStream({ ...resolved, startSeconds: resolved.isHls ? 0 : position });
   }, [serverUrl, accessToken]);
 
@@ -50,6 +49,7 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
     (async () => {
       const bw = await measureBandwidth(api);
       setBandwidth(bw);
+      setCurrentBitrate(bw);
       const { id: playId, startTicks } = await resolvePlayableItem(api, userId, item);
       const { mediaSource: ms, playSessionId } = await fetchPlaybackInfo(api, userId, playId, { startTicks, maxBitrate: bw });
       if (!active) return;

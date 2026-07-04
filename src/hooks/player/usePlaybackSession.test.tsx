@@ -4,7 +4,7 @@ import { expect, test, vi } from 'vitest';
 vi.mock('../useApi', () => ({ useApi: () => ({ api: {}, session: { userId: 'u', serverUrl: '/jf', accessToken: 't', userName: 'x' } }) }));
 vi.mock('../../lib/jellyfin/device', () => ({ getDeviceId: () => 'dev' }));
 vi.mock('../api/useItem', () => ({ useItem: () => ({ data: { Id: 'ep1' } }) }));
-vi.mock('../../lib/jellyfin/bitrate', () => ({ measureBandwidth: vi.fn().mockResolvedValue(8_000_000) }));
+vi.mock('../../lib/jellyfin/bitrate', () => ({ measureBandwidth: vi.fn().mockResolvedValue(10_000_000) }));
 const fetchPlaybackInfo = vi.fn();
 vi.mock('../../lib/jellyfin/playback', async (orig) => ({
   ...(await orig<typeof import('../../lib/jellyfin/playback')>()),
@@ -16,7 +16,7 @@ vi.mock('../../lib/jellyfin/playback', async (orig) => ({
 
 import { usePlaybackSession } from './usePlaybackSession';
 
-const MS = { Id: 'm', MediaStreams: [{ Index: 1, Type: 'Audio', Language: 'eng', IsDefault: true }, { Index: 2, Type: 'Audio', Language: 'fre' }] };
+const MS = { Id: 'm', Bitrate: 25_000_000, MediaStreams: [{ Index: 1, Type: 'Audio', Language: 'eng', IsDefault: true }, { Index: 2, Type: 'Audio', Language: 'fre' }] };
 
 test('negotiates once and exposes audio tracks', async () => {
   fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps' });
@@ -42,4 +42,24 @@ test('setAudioTrack renegotiates at the given position and keeps the selected au
   expect(lastCall[3]).toMatchObject({ audioStreamIndex: 2, startTicks: 42 * 10_000_000 });
   // Regression (lost update): audioIndex must remain 2, not be reverted by apply().
   expect(result.current.audioIndex).toBe(2);
+});
+
+test('currentBitrate is set to the measured bandwidth cap, not the source MediaSource.Bitrate', async () => {
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps' });
+  const { result } = renderHook(() => usePlaybackSession('ep1', () => 0));
+  await waitFor(() => expect(result.current.stream).not.toBeNull());
+  // MS.Bitrate is 25_000_000 (source bitrate); the negotiated cap is the mocked bandwidth, 10_000_000.
+  // A buggy apply() that sets currentBitrate from ms.Bitrate would clobber this to 25_000_000.
+  expect(result.current.currentBitrate).toBe(10_000_000);
+});
+
+test('renegotiate with maxBitrate persists as currentBitrate (apply no longer clobbers it)', async () => {
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps' });
+  const { result } = renderHook(() => usePlaybackSession('ep1', () => 0));
+  await waitFor(() => expect(result.current.stream).not.toBeNull());
+  expect(result.current.currentBitrate).toBe(10_000_000);
+  // Renegotiation response still carries the high source Bitrate; only the requested cap should stick.
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps3' });
+  await act(async () => { await result.current.renegotiate({ maxBitrate: 4_000_000, position: 0 }); });
+  expect(result.current.currentBitrate).toBe(4_000_000);
 });
