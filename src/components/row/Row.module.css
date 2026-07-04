@@ -1,0 +1,16 @@
+.row { margin: 0 0 3vw; }
+.title { font-size: clamp(14px, 1.4vw, 24px); font-weight: 700; color: #e5e5e5; padding: 0 var(--nf-inset); margin-bottom: 8px; }
+.strip {
+  --cards: 6;
+  display: grid; grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 2 * var(--nf-inset) - 5 * var(--nf-card-gap)) / var(--cards));
+  gap: var(--nf-card-gap);
+  padding: 0 var(--nf-inset);
+  overflow-x: auto; scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.strip::-webkit-scrollbar { display: none; }
+@media (max-width: 1400px) { .strip { --cards: 5; } }
+@media (max-width: 1100px) { .strip { --cards: 4; } }
+@media (max-width: 800px)  { .strip { --cards: 3; } }
+@media (max-width: 500px)  { .strip { --cards: 2; } }
