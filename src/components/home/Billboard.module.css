@@ -7,6 +7,7 @@
 .content { position: absolute; left: var(--nf-inset); bottom: 12vw; max-width: 40%; }
 .logo { max-width: 100%; max-height: 180px; margin-bottom: 16px; }
 .title { font-size: clamp(28px, 4vw, 64px); font-weight: 800; margin-bottom: 16px; }
+.subtitle { font-size: 18px; font-weight: 600; color: #e5e5e5; margin-bottom: 12px; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
 .synopsis { font-size: 18px; line-height: 1.4; text-shadow: 0 2px 4px rgba(0,0,0,.6); margin-bottom: 20px; }
 .buttons { display: flex; gap: 12px; }
 .play, .info { display: inline-flex; align-items: center; gap: 8px; padding: 8px 24px; border-radius: var(--nf-radius); font-weight: 700; }

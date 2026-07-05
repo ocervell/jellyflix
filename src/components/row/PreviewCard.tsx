@@ -1,7 +1,7 @@
 import { Play, ChevronDown } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getCardImageUrl } from '../../lib/jellyfin/images';
-import { formatRuntime, playedPercent } from '../../lib/format';
+import { formatRuntime, playedPercent, cardTitle } from '../../lib/format';
 import { Img } from '../common/Img';
 import { ProgressBar } from '../common/ProgressBar';
 import ItemActions from '../common/ItemActions';
@@ -13,20 +13,21 @@ export default function PreviewCard({
 }: { item: BaseItemDto; onOpen: (i: BaseItemDto) => void; onPlay: (i: BaseItemDto) => void }) {
   const { api } = useApi();
   const src = getCardImageUrl(api, item, { width: 400 });
-  const label = item.Name ?? 'Untitled';
+  const { title, subtitle } = cardTitle(item);
+  const fullLabel = subtitle ? `${title} – ${subtitle}` : title;
   return (
     <div className={styles.card}>
-      <button className={styles.art} onClick={() => onOpen(item)} aria-label={label}>
-        <Img src={src} alt={label} />
-        {!src && <span className={styles.fallbackTitle}>{label}</span>}
+      <button className={styles.art} onClick={() => onOpen(item)} aria-label={fullLabel}>
+        <Img src={src} alt={fullLabel} />
+        {!src && <span className={styles.fallbackTitle}>{title}</span>}
         <ProgressBar percent={playedPercent(item)} />
       </button>
       <div className={styles.panel}>
         <div className={styles.actions}>
-          <button className={styles.play} onClick={() => onPlay(item)} aria-label={`Play ${label}`} title="Play">
+          <button className={styles.play} onClick={() => onPlay(item)} aria-label={`Play ${fullLabel}`} title="Play">
             <Play size={18} fill="currentColor" />
           </button>
-          <button className={styles.more} onClick={() => onOpen(item)} aria-label={`More info ${label}`} title="More info">
+          <button className={styles.more} onClick={() => onOpen(item)} aria-label={`More info ${fullLabel}`} title="More info">
             <ChevronDown size={18} />
           </button>
           <ItemActions item={item} size="sm" />
@@ -35,7 +36,8 @@ export default function PreviewCard({
           {item.ProductionYear && <span>{item.ProductionYear}</span>}
           {item.RunTimeTicks ? <span>{formatRuntime(item.RunTimeTicks)}</span> : null}
         </div>
-        <div className={styles.name}>{label}</div>
+        <div className={styles.name}>{title}</div>
+        {subtitle && <div className={styles.episode}>{subtitle}</div>}
       </div>
     </div>
   );
