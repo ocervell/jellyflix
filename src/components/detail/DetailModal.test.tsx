@@ -9,6 +9,7 @@ vi.mock('../../hooks/api/useItem', () => ({
   useItem: () => ({ data: { Id: 'm1', Name: 'November', Type: 'Movie', Overview: 'x', ProductionYear: 2017 } as BaseItemDto, isLoading: false }),
 }));
 vi.mock('./EpisodeList', () => ({ default: () => <div>episodes</div> }));
+vi.mock('../common/ItemActions', () => ({ default: () => <div>item actions</div> }));
 
 import DetailModal from './DetailModal';
 

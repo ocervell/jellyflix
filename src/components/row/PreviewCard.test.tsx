@@ -5,6 +5,7 @@ import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 
 vi.mock('../../hooks/useApi', () => ({ useApi: () => ({ api: {}, session: { userId: 'u' } }) }));
 vi.mock('../../lib/jellyfin/images', () => ({ getCardImageUrl: () => 'http://img' }));
+vi.mock('../common/ItemActions', () => ({ default: () => <div>item actions</div> }));
 
 import PreviewCard from './PreviewCard';
 

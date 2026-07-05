@@ -3,6 +3,7 @@ import { getCardImageUrl } from '../../lib/jellyfin/images';
 import { formatRuntime, playedPercent } from '../../lib/format';
 import { Img } from '../common/Img';
 import { ProgressBar } from '../common/ProgressBar';
+import ItemActions from '../common/ItemActions';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import styles from './PreviewCard.module.css';
 
@@ -23,6 +24,7 @@ export default function PreviewCard({
         <div className={styles.actions}>
           <button className={styles.play} onClick={() => onPlay(item)} aria-label={`Play ${label}`}>▶</button>
           <button className={styles.more} onClick={() => onOpen(item)} aria-label={`More info ${label}`}>⌄</button>
+          <ItemActions item={item} size="sm" />
         </div>
         <div className={styles.meta}>
           {item.ProductionYear && <span>{item.ProductionYear}</span>}
