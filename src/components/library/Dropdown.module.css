@@ -1,0 +1,7 @@
+.wrap { position: relative; }
+.trigger { padding: 8px 12px; background: var(--nf-elevated); color: #fff; border-radius: var(--nf-radius); font-size: 14px; }
+.trigger:hover { background: var(--nf-elevated-2); }
+.menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 50; min-width: 200px; max-height: 320px; overflow-y: auto;
+  background: rgba(0,0,0,.95); border: 1px solid #333; border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+.menu label { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; color: #fff; font-size: 14px; cursor: pointer; }
+.menu label:hover { background: rgba(255,255,255,.08); }
