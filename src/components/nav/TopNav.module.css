@@ -7,6 +7,7 @@
 .links { display: flex; gap: 20px; }
 .links a { color: var(--nf-grey); font-size: 14px; }
 .links a:hover { color: var(--nf-white); }
+.links a.active { color: var(--nf-white); }
 .logout { color: var(--nf-grey); font-size: 14px; }
 .logout:hover { color: var(--nf-white); }
 @media (max-width: 800px) { .links { display: none; } }
