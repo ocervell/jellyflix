@@ -1,0 +1,7 @@
+.card { display: flex; flex-direction: column; gap: 6px; text-align: left; width: 100%; }
+.poster { position: relative; aspect-ratio: 2 / 3; border-radius: var(--nf-radius); overflow: hidden; background: var(--nf-elevated-2);
+  transition: transform .2s var(--nf-ease), box-shadow .2s var(--nf-ease); }
+.card:hover .poster, .card:focus-visible .poster { transform: scale(1.04); box-shadow: 0 8px 20px rgba(0,0,0,.6); }
+.title { font-size: 13px; font-weight: 600; color: var(--nf-white); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.year { font-size: 12px; color: var(--nf-grey); margin-top: -2px; }
+@media (prefers-reduced-motion: reduce) { .poster { transition: none; } }

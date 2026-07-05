@@ -1,0 +1,7 @@
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px 16px; padding: 0 var(--nf-inset); }
+.skeleton { aspect-ratio: 2/3; border-radius: var(--nf-radius); background: linear-gradient(90deg,#1a1a1a,#2a2a2a,#1a1a1a); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.empty { padding: 60px var(--nf-inset); color: var(--nf-grey); }
+.sentinel { height: 1px; }
+.loadingMore { text-align: center; color: var(--nf-grey); padding: 16px; }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
