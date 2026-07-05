@@ -5,6 +5,7 @@ import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 
 vi.mock('../../hooks/useApi', () => ({ useApi: () => ({ api: {}, session: { userId: 'u' } }) }));
 vi.mock('../../lib/jellyfin/images', () => ({ getPosterUrl: () => 'http://img/p.jpg' }));
+vi.mock('../common/ItemActions', () => ({ default: () => <div>item actions</div> }));
 import PosterCard from './PosterCard';
 
 const item = { Id: 'x', Name: 'Fanboys', ProductionYear: 2009, UserData: { PlayedPercentage: 40 } } as BaseItemDto;

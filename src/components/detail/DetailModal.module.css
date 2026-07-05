@@ -7,6 +7,7 @@
 .heroContent { position: absolute; left: 40px; bottom: 32px; }
 .logo { max-width: 320px; max-height: 140px; margin-bottom: 16px; }
 .title { font-size: 40px; font-weight: 800; margin-bottom: 16px; }
+.heroButtons { display: flex; gap: 12px; align-items: center; }
 .play { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #000; font-weight: 700; padding: 8px 24px; border-radius: var(--nf-radius); }
 .body { padding: 24px 40px 40px; }
 .metaRow { display: flex; gap: 12px; align-items: center; color: var(--nf-grey); margin-bottom: 16px; }

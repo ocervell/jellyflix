@@ -4,6 +4,7 @@ import { useItem } from '../../hooks/api/useItem';
 import { getBackdropUrl, getLogoUrl } from '../../lib/jellyfin/images';
 import { formatRuntime } from '../../lib/format';
 import EpisodeList from './EpisodeList';
+import ItemActions from '../common/ItemActions';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import styles from './DetailModal.module.css';
 
@@ -36,7 +37,10 @@ export default function DetailModal({
                 {getLogoUrl(api, item)
                   ? <img className={styles.logo} src={getLogoUrl(api, item)!} alt={item.Name ?? ''} />
                   : <h1 className={styles.title}>{item.Name}</h1>}
-                <button className={styles.play} onClick={() => onPlay(item)}>▶ Play</button>
+                <div className={styles.heroButtons}>
+                  <button className={styles.play} onClick={() => onPlay(item)}>▶ Play</button>
+                  <ItemActions item={item} size="md" />
+                </div>
               </div>
             </div>
             <div className={styles.body}>
