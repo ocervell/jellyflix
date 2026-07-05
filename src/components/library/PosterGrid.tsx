@@ -4,16 +4,17 @@ import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import styles from './PosterGrid.module.css';
 
 export default function PosterGrid({
-  items, loading, onOpen, onLoadMore, hasMore,
+  items, loading, onOpen, onLoadMore, hasMore, emptyMessage = 'No titles match these filters.',
 }: {
-  items: BaseItemDto[]; loading: boolean; onOpen: (i: BaseItemDto) => void; onLoadMore: () => void; hasMore: boolean;
+  items: BaseItemDto[]; loading: boolean; onOpen: (i: BaseItemDto) => void;
+  onLoadMore: () => void; hasMore: boolean; emptyMessage?: string;
 }) {
   const { sentinelRef } = useInfiniteScroll(onLoadMore, hasMore && !loading);
   if (loading && items.length === 0) {
     return <div className={styles.grid}>{Array.from({ length: 18 }).map((_, i) => <div key={i} className={styles.skeleton} />)}</div>;
   }
   if (!loading && items.length === 0) {
-    return <p className={styles.empty}>No titles match these filters.</p>;
+    return <p className={styles.empty}>{emptyMessage}</p>;
   }
   return (
     <>

@@ -24,3 +24,20 @@ test('status segmented control and clear', async () => {
   await userEvent.click(screen.getByRole('button', { name: /clear/i }));
   expect(onChange).toHaveBeenCalledWith(DEFAULT_QUERY);
 });
+
+const genres = ['Action', 'Drama'];
+const decades = [2010, 2000];
+
+test('renders Genre and Decade dropdowns by default', () => {
+  render(<FilterBar query={DEFAULT_QUERY} genres={genres} decades={decades} total={3} onChange={vi.fn()} />);
+  expect(screen.getByRole('button', { name: /genre/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /decade/i })).toBeInTheDocument();
+});
+
+test('facets=false hides Genre and Decade but keeps sort + status', () => {
+  render(<FilterBar query={DEFAULT_QUERY} genres={genres} decades={decades} total={3} facets={false} onChange={vi.fn()} />);
+  expect(screen.queryByRole('button', { name: /genre/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /decade/i })).not.toBeInTheDocument();
+  expect(screen.getByLabelText(/sort by/i)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /^unplayed$/i })).toBeInTheDocument();
+});
