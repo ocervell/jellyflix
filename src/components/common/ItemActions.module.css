@@ -1,0 +1,5 @@
+.actions { display: inline-flex; gap: 8px; }
+.btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--nf-outline); background: rgba(20,20,20,.7); color: #fff; display: grid; place-items: center; font-size: 15px; }
+.btn:hover { border-color: #fff; background: rgba(40,40,40,.9); }
+.sm .btn { width: 30px; height: 30px; font-size: 13px; }
+.on { border-color: var(--nf-red); color: var(--nf-red); }
