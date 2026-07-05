@@ -15,16 +15,39 @@ export function canPlayCodec(codec: string): boolean {
   return v.canPlayType(t) !== '';
 }
 
+// Audio codecs the browser can actually decode. Dolby (ac3/eac3), DTS, TrueHD are
+// NOT decodable in Chrome/Firefox — listing them makes the server COPY that audio
+// into the stream, producing silent video. So gate them by canPlayType and always
+// transcode to AAC otherwise. (Audio twin of the HEVC video gating above.)
+const AUDIO_CODEC_TEST: Record<string, string> = {
+  mp3: 'audio/mpeg',
+  opus: 'audio/webm; codecs="opus"',
+  flac: 'audio/ogg; codecs="flac"',
+  vorbis: 'audio/webm; codecs="vorbis"',
+  ac3: 'audio/mp4; codecs="ac-3"',
+  eac3: 'audio/mp4; codecs="ec-3"',
+};
+
+export function canPlayAudioCodec(codec: string): boolean {
+  if (codec === 'aac') return true; // universally supported baseline + transcode target
+  const t = AUDIO_CODEC_TEST[codec];
+  if (!t) return false;
+  const a = document.createElement('audio');
+  return a.canPlayType(t) !== '';
+}
+
 export function buildDeviceProfile(maxBitrate?: number): DeviceProfile {
   const videoCodecs = ['h264', 'hevc', 'vp9', 'av1'].filter(canPlayCodec).join(',');
+  const audioCodecs = ['aac', 'mp3', 'opus', 'flac', 'vorbis', 'ac3', 'eac3'].filter(canPlayAudioCodec).join(',');
   return {
     MaxStreamingBitrate: maxBitrate ?? 120_000_000,
     MaxStaticBitrate: 100_000_000,
     DirectPlayProfiles: [
-      { Container: 'mp4,m4v,mkv,webm', Type: 'Video', VideoCodec: videoCodecs, AudioCodec: 'aac,mp3,ac3,eac3,opus,flac,vorbis' },
+      { Container: 'mp4,m4v,mkv,webm', Type: 'Video', VideoCodec: videoCodecs, AudioCodec: audioCodecs },
     ],
     TranscodingProfiles: [
-      { Container: 'ts', Type: 'Video', Protocol: 'hls', VideoCodec: 'h264', AudioCodec: 'aac,ac3,eac3,mp3', Context: 'Streaming' },
+      // Only browser-decodable targets; never AC3/EAC3 (which would be copied, not transcoded).
+      { Container: 'ts', Type: 'Video', Protocol: 'hls', VideoCodec: 'h264', AudioCodec: 'aac,mp3', Context: 'Streaming' },
     ],
     CodecProfiles: [],
     SubtitleProfiles: [
