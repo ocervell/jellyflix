@@ -9,7 +9,7 @@
      without being clipped: overflow clips at the padding box, so content inside
      the padding stays visible. The horizontal --nf-inset padding already
      contains the card's sideways growth for the same reason. */
-  padding: 28px var(--nf-inset) 150px;
+  padding: 28px var(--nf-inset) 220px;
   /* overflow-x:auto alone forces overflow-y to `auto`, making the tall bottom
      padding vertically scrollable (a wheel gesture over a row scrolls into empty
      space instead of the page). Pin overflow-y:hidden — it stops vertical
@@ -24,8 +24,8 @@
 @media (max-width: 500px)  { .strip { --cards: 2; } }
 /* Reclaim most of the strip's bottom padding so rows aren't spaced far apart;
    on hover the info panel simply overlaps the row below (Netflix behaviour). */
-.viewport { position: relative; margin-bottom: -130px; }
-.arrow { position: absolute; top: 28px; bottom: 150px; width: var(--nf-inset); z-index: 30; font-size: 2rem; color: #fff;
+.viewport { position: relative; margin-bottom: -200px; }
+.arrow { position: absolute; top: 28px; bottom: 220px; width: var(--nf-inset); z-index: 30; font-size: 2rem; color: #fff;
   opacity: 0; transition: opacity .2s ease; }
 .viewport:hover .arrow { opacity: 1; }
 .left { left: 0; background: linear-gradient(90deg, rgba(0,0,0,.7), transparent); }

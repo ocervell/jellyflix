@@ -1,3 +1,4 @@
+import { Play, Info } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getBackdropUrl, getLogoUrl } from '../../lib/jellyfin/images';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
@@ -19,8 +20,8 @@ export default function Billboard({
           : <h1 className={styles.title}>{item.Name}</h1>}
         {item.Overview && <p className={styles.synopsis}>{item.Overview}</p>}
         <div className={styles.buttons}>
-          <button className={styles.play} onClick={() => onPlay(item)}>▶ Play</button>
-          <button className={styles.info} onClick={() => onMoreInfo(item)}>ⓘ More Info</button>
+          <button className={styles.play} onClick={() => onPlay(item)}><Play size={20} fill="currentColor" /> Play</button>
+          <button className={styles.info} onClick={() => onMoreInfo(item)}><Info size={20} /> More Info</button>
         </div>
       </div>
     </div>

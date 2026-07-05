@@ -1,3 +1,4 @@
+import { Play, ChevronDown } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getCardImageUrl } from '../../lib/jellyfin/images';
 import { formatRuntime, playedPercent } from '../../lib/format';
@@ -22,8 +23,12 @@ export default function PreviewCard({
       </button>
       <div className={styles.panel}>
         <div className={styles.actions}>
-          <button className={styles.play} onClick={() => onPlay(item)} aria-label={`Play ${label}`}>▶</button>
-          <button className={styles.more} onClick={() => onOpen(item)} aria-label={`More info ${label}`}>⌄</button>
+          <button className={styles.play} onClick={() => onPlay(item)} aria-label={`Play ${label}`} title="Play">
+            <Play size={18} fill="currentColor" />
+          </button>
+          <button className={styles.more} onClick={() => onOpen(item)} aria-label={`More info ${label}`} title="More info">
+            <ChevronDown size={18} />
+          </button>
           <ItemActions item={item} size="sm" />
         </div>
         <div className={styles.meta}>

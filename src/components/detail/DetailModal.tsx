@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Play } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { useItem } from '../../hooks/api/useItem';
 import { getBackdropUrl, getLogoUrl } from '../../lib/jellyfin/images';
@@ -38,7 +39,7 @@ export default function DetailModal({
                   ? <img className={styles.logo} src={getLogoUrl(api, item)!} alt={item.Name ?? ''} />
                   : <h1 className={styles.title}>{item.Name}</h1>}
                 <div className={styles.heroButtons}>
-                  <button className={styles.play} onClick={() => onPlay(item)}>▶ Play</button>
+                  <button className={styles.play} onClick={() => onPlay(item)}><Play size={20} fill="currentColor" /> Play</button>
                   <ItemActions item={item} size="md" />
                 </div>
               </div>
