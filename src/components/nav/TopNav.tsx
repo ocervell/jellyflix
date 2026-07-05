@@ -2,6 +2,7 @@ import { useAuth } from '../../hooks/useApi';
 import { useScrolled } from '../common/useScrolled';
 import { useUserViews } from '../../hooks/api/useUserViews';
 import { useLocation } from 'react-router-dom';
+import SearchBox from './SearchBox';
 import styles from './TopNav.module.css';
 
 export default function TopNav() {
@@ -23,7 +24,10 @@ export default function TopNav() {
           {movies && <a href={`#/library/${movies.Id}`} className={isActive(movies.Id) ? styles.active : ''}>Movies</a>}
         </nav>
       </div>
-      <button className={styles.logout} onClick={logout}>Sign out</button>
+      <div className={styles.right}>
+        <SearchBox />
+        <button className={styles.logout} onClick={logout}>Sign out</button>
+      </div>
     </header>
   );
 }

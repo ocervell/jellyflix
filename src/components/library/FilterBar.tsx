@@ -7,9 +7,10 @@ const STATUS: WatchedStatus[] = ['all', 'unplayed', 'played', 'favorites'];
 const STATUS_LABELS: Record<WatchedStatus, string> = { all: 'All', unplayed: 'Unplayed', played: 'Played', favorites: 'Favorites' };
 
 export default function FilterBar({
-  query, genres, decades, total, onChange,
+  query, genres, decades, total, onChange, facets = true,
 }: {
-  query: LibraryQuery; genres: string[]; decades: number[]; total: number; onChange: (q: LibraryQuery) => void;
+  query: LibraryQuery; genres: string[]; decades: number[]; total: number;
+  onChange: (q: LibraryQuery) => void; facets?: boolean;
 }) {
   const toggle = <T,>(list: T[], v: T): T[] => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const isDefault = JSON.stringify(query) === JSON.stringify(DEFAULT_QUERY);
@@ -25,19 +26,23 @@ export default function FilterBar({
         {query.order === 'asc' ? '↑' : '↓'}
       </button>
 
-      <Dropdown label={`Genre${query.genres.length ? ` (${query.genres.length})` : ''}`}>
-        {genres.map((g) => (
-          <label key={g}><input type="checkbox" aria-label={g} checked={query.genres.includes(g)}
-            onChange={() => onChange({ ...query, genres: toggle(query.genres, g) })} />{g}</label>
-        ))}
-      </Dropdown>
+      {facets && (
+        <>
+          <Dropdown label={`Genre${query.genres.length ? ` (${query.genres.length})` : ''}`}>
+            {genres.map((g) => (
+              <label key={g}><input type="checkbox" aria-label={g} checked={query.genres.includes(g)}
+                onChange={() => onChange({ ...query, genres: toggle(query.genres, g) })} />{g}</label>
+            ))}
+          </Dropdown>
 
-      <Dropdown label={`Decade${query.decades.length ? ` (${query.decades.length})` : ''}`}>
-        {decades.map((d) => (
-          <label key={d}><input type="checkbox" aria-label={`${d}s`} checked={query.decades.includes(d)}
-            onChange={() => onChange({ ...query, decades: toggle(query.decades, d) })} />{d}s</label>
-        ))}
-      </Dropdown>
+          <Dropdown label={`Decade${query.decades.length ? ` (${query.decades.length})` : ''}`}>
+            {decades.map((d) => (
+              <label key={d}><input type="checkbox" aria-label={`${d}s`} checked={query.decades.includes(d)}
+                onChange={() => onChange({ ...query, decades: toggle(query.decades, d) })} />{d}s</label>
+            ))}
+          </Dropdown>
+        </>
+      )}
 
       <div className={styles.status} role="group" aria-label="Watched status">
         {STATUS.map((s) => (

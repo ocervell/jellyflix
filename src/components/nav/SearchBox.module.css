@@ -1,0 +1,8 @@
+.box { display: inline-flex; align-items: center; gap: 4px; }
+.icon, .clear { display: grid; place-items: center; width: 36px; height: 36px; color: #fff; }
+.input {
+  width: 220px; height: 36px; padding: 0 10px; color: #fff;
+  background: rgba(0,0,0,.7); border: 1px solid var(--nf-outline); border-radius: var(--nf-radius);
+}
+.input::placeholder { color: var(--nf-grey); }
+@media (max-width: 500px) { .input { width: 140px; } }

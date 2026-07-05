@@ -48,21 +48,27 @@ export function toParams(q: LibraryQuery): URLSearchParams {
 
 export type ItemsArgsCtx = { viewId: string; userId: string; includeItemTypes: string[]; startIndex: number; limit: number };
 
-export function toGetItemsArgs(q: LibraryQuery, ctx: ItemsArgsCtx): ItemsApiGetItemsRequest {
-  const years = q.decades.flatMap((d) => Array.from({ length: 10 }, (_, i) => d + i));
+export function sortStatusArgs(q: Pick<LibraryQuery, 'sort' | 'order' | 'status'>): Partial<ItemsApiGetItemsRequest> {
   const filters: ItemFilter[] = q.status === 'unplayed' ? [ItemFilter.IsUnplayed]
     : q.status === 'played' ? [ItemFilter.IsPlayed] : [];
+  return {
+    sortBy: [SORT_MAP[q.sort]],
+    sortOrder: [q.order === 'desc' ? SortOrder.Descending : SortOrder.Ascending],
+    ...(filters.length ? { filters } : {}),
+    ...(q.status === 'favorites' ? { isFavorite: true } : {}),
+  };
+}
+
+export function toGetItemsArgs(q: LibraryQuery, ctx: ItemsArgsCtx): ItemsApiGetItemsRequest {
+  const years = q.decades.flatMap((d) => Array.from({ length: 10 }, (_, i) => d + i));
   return {
     userId: ctx.userId,
     parentId: ctx.viewId,
     recursive: true,
     includeItemTypes: ctx.includeItemTypes as BaseItemKind[],
-    sortBy: [SORT_MAP[q.sort]],
-    sortOrder: [q.order === 'desc' ? SortOrder.Descending : SortOrder.Ascending],
+    ...sortStatusArgs(q),
     ...(q.genres.length ? { genres: q.genres } : {}),
     ...(years.length ? { years } : {}),
-    ...(filters.length ? { filters } : {}),
-    ...(q.status === 'favorites' ? { isFavorite: true } : {}),
     startIndex: ctx.startIndex,
     limit: ctx.limit,
     fields: [ItemFields.PrimaryImageAspectRatio],
