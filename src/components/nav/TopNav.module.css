@@ -11,3 +11,4 @@
 .logout { color: var(--nf-grey); font-size: 14px; }
 .logout:hover { color: var(--nf-white); }
 @media (max-width: 800px) { .links { display: none; } }
+.right { display: flex; align-items: center; gap: 8px; }
