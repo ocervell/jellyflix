@@ -28,3 +28,18 @@ test('appends pages and stops at total', async () => {
   expect(getItems.mock.calls[0][0].startIndex).toBe(0);
   expect(getItems.mock.calls[1][0].startIndex).toBe(LIBRARY_PAGE_SIZE);
 });
+
+test('de-dupes items sharing an id across pages (random sort reshuffle)', async () => {
+  const pages = [
+    { data: { Items: [{ Id: 'a', Name: 'n a' }, { Id: 'b', Name: 'n b' }], TotalRecordCount: 4, StartIndex: 0 } },
+    { data: { Items: [{ Id: 'b', Name: 'n b' }, { Id: 'c', Name: 'n c' }], TotalRecordCount: 4, StartIndex: LIBRARY_PAGE_SIZE } },
+  ];
+  getItems.mockReset();
+  let call = 0;
+  getItems.mockImplementation(() => Promise.resolve(pages[call++]));
+  const { result } = renderHook(() => useLibraryItems(DEFAULT_QUERY, { id: 'V', includeItemTypes: ['Movie'] }), { wrapper });
+  await waitFor(() => expect(result.current.items).toHaveLength(2));
+  await act(async () => { result.current.fetchNextPage(); });
+  await waitFor(() => expect(getItems).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(result.current.items.map((i) => i.Id)).toEqual(['a', 'b', 'c']));
+});

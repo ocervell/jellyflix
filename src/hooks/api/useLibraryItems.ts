@@ -25,7 +25,15 @@ export function useLibraryItems(query: LibraryQuery, view: { id: string; include
       return loaded < (lastPage.TotalRecordCount ?? 0) ? allPages.length * LIBRARY_PAGE_SIZE : undefined;
     },
   });
-  const items: BaseItemDto[] = (q.data?.pages ?? []).flatMap((p) => p.Items ?? []);
+  const seen = new Set<string>();
+  const items: BaseItemDto[] = (q.data?.pages ?? [])
+    .flatMap((p) => p.Items ?? [])
+    .filter((it) => {
+      const id = it.Id ?? '';
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
   const total = q.data?.pages[0]?.TotalRecordCount ?? 0;
   return {
     items, total,

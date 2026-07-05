@@ -6,7 +6,7 @@ import { useApi } from '../useApi';
 export function useLibraryFilters(view: { id: string; includeItemTypes: string[] }) {
   const { api, session } = useApi();
   const { data } = useQuery({
-    queryKey: ['libraryFilters', session.userId, view.id],
+    queryKey: ['libraryFilters', session.userId, view.id, view.includeItemTypes.join(',')],
     enabled: !!view.id,
     queryFn: async ({ signal }) => {
       const res = await getFilterApi(api).getQueryFiltersLegacy(
