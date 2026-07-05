@@ -10,7 +10,11 @@
      the padding stays visible. The horizontal --nf-inset padding already
      contains the card's sideways growth for the same reason. */
   padding: 28px var(--nf-inset) 150px;
-  overflow-x: auto; scroll-behavior: smooth;
+  /* overflow-x:auto alone forces overflow-y to `auto`, making the tall bottom
+     padding vertically scrollable (a wheel gesture over a row scrolls into empty
+     space instead of the page). Pin overflow-y:hidden — it stops vertical
+     scrolling but still SHOWS the hover-expand content within the padding box. */
+  overflow-x: auto; overflow-y: hidden; scroll-behavior: smooth;
   scrollbar-width: none;
 }
 .strip::-webkit-scrollbar { display: none; }
