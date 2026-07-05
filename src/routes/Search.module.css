@@ -1,0 +1,4 @@
+.page { min-height: 100%; padding-bottom: 60px; }
+.body { padding-top: var(--nf-nav-h); }
+.heading { font-size: clamp(20px, 2.4vw, 30px); font-weight: 800; padding: 24px var(--nf-inset) 8px; }
+.prompt { padding: 120px var(--nf-inset); text-align: center; color: var(--nf-grey); font-size: 20px; }
