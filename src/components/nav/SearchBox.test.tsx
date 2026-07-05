@@ -23,3 +23,10 @@ test('typing debounces then navigates to /search?q=', async () => {
   act(() => { vi.advanceTimersByTime(300); });
   expect(navigate).toHaveBeenCalledWith('/search?q=matrix', { replace: false });
 });
+
+test('clearing on /search navigates to bare /search (not history back)', async () => {
+  const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+  render(<MemoryRouter initialEntries={['/search?q=matrix']}><SearchBox /></MemoryRouter>);
+  await user.click(screen.getByRole('button', { name: /clear search/i }));
+  expect(navigate).toHaveBeenCalledWith('/search', { replace: true });
+});

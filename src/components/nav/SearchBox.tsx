@@ -41,7 +41,7 @@ export default function SearchBox() {
     clearTimeout(timer.current);
     setOpen(false);
     setText('');
-    if (onSearch) navigate(-1);
+    if (onSearch) navigate('/search', { replace: true });
   };
 
   return (
