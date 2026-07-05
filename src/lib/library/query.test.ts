@@ -1,5 +1,16 @@
 import { expect, test } from 'vitest';
-import { parseParams, toParams, toGetItemsArgs, DEFAULT_QUERY } from './query';
+import { parseParams, toParams, toGetItemsArgs, sortStatusArgs, DEFAULT_QUERY } from './query';
+
+test('sortStatusArgs maps sort/order and status', () => {
+  expect(sortStatusArgs({ sort: 'year', order: 'desc', status: 'unplayed' }))
+    .toEqual({ sortBy: ['PremiereDate'], sortOrder: ['Descending'], filters: ['IsUnplayed'] });
+  expect(sortStatusArgs({ sort: 'name', order: 'asc', status: 'played' }))
+    .toEqual({ sortBy: ['SortName'], sortOrder: ['Ascending'], filters: ['IsPlayed'] });
+  expect(sortStatusArgs({ sort: 'name', order: 'asc', status: 'favorites' }))
+    .toEqual({ sortBy: ['SortName'], sortOrder: ['Ascending'], isFavorite: true });
+  expect(sortStatusArgs({ sort: 'name', order: 'asc', status: 'all' }))
+    .toEqual({ sortBy: ['SortName'], sortOrder: ['Ascending'] });
+});
 
 test('parseParams falls back to defaults for empty/invalid', () => {
   expect(parseParams(new URLSearchParams(''))).toEqual(DEFAULT_QUERY);
