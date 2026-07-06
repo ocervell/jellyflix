@@ -1,10 +1,9 @@
-# syntax=docker/dockerfile:1
-
 # ---- Build the static SPA -------------------------------------------------
-# The build output is pure static JS/CSS/HTML (arch-independent), so always run
-# it on the native builder arch (--platform=$BUILDPLATFORM). This keeps
-# multi-arch images cheap: only the tiny nginx runtime layer below varies.
-FROM --platform=$BUILDPLATFORM node:22-alpine AS builder
+# Plain FROM so this builds with either the classic builder (`docker build .`)
+# or buildx. Under a buildx multi-arch build the JS is rebuilt per target arch
+# (it's arch-independent output, so that's just wasted CPU, not a correctness
+# issue); the tiny nginx runtime layer below is what actually differs per arch.
+FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
