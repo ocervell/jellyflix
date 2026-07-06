@@ -5,7 +5,7 @@ import { useApi } from '../useApi';
 import { PLAYLIST_NAME, indexWatchlist, addItemToList, removeItemFromList } from '../../lib/jellyfin/watchlist';
 import type { WatchlistData } from './useWatchlist';
 
-type ToggleVars = { item: BaseItemDto; wasMember: boolean; playlistId: string | null; entryId: string | undefined };
+type ToggleVars = { item: BaseItemDto; wasMember: boolean; playlistId: string | null; currentIds: string[] };
 
 const EMPTY: WatchlistData = { playlistId: null, items: [] };
 
@@ -19,19 +19,13 @@ export function useToggleWatchlist(): (item: BaseItemDto) => void {
       const pls = getPlaylistsApi(api);
       if (!v.wasMember) {
         if (v.playlistId) await pls.addItemToPlaylist({ playlistId: v.playlistId, ids: [id], userId: session.userId });
-        else await pls.createPlaylist({ name: PLAYLIST_NAME, ids: [id], userId: session.userId });
+        else await pls.createPlaylist({ createPlaylistDto: { Name: PLAYLIST_NAME, Ids: [id], UserId: session.userId } });
         return;
       }
-      let playlistId = v.playlistId;
-      let entryId = v.entryId;
-      if (!playlistId || !entryId) {
-        // Rare first-add race: entry id not yet reconciled — refetch to obtain it.
-        await qc.refetchQueries({ queryKey: key });
-        const fresh = qc.getQueryData<WatchlistData>(key) ?? EMPTY;
-        playlistId = fresh.playlistId;
-        entryId = indexWatchlist(fresh.items).entryById.get(id);
+      if (v.playlistId) {
+        const nextIds = v.currentIds.filter((x) => x !== id);
+        await pls.updatePlaylist({ playlistId: v.playlistId, updatePlaylistDto: { Ids: nextIds } });
       }
-      if (playlistId && entryId) await pls.removeItemFromPlaylist({ playlistId, entryIds: [entryId] });
     },
     onMutate: async (v: ToggleVars) => {
       await qc.cancelQueries({ queryKey: key });
@@ -45,8 +39,9 @@ export function useToggleWatchlist(): (item: BaseItemDto) => void {
   });
   return (item) => {
     const current = qc.getQueryData<WatchlistData>(key) ?? EMPTY;
-    const { ids, entryById } = indexWatchlist(current.items);
+    const { ids } = indexWatchlist(current.items);
     const id = item.Id ?? '';
-    m.mutate({ item, wasMember: ids.has(id), playlistId: current.playlistId, entryId: entryById.get(id) });
+    const currentIds = current.items.map((i) => i.Id).filter((x): x is string => !!x);
+    m.mutate({ item, wasMember: ids.has(id), playlistId: current.playlistId, currentIds });
   };
 }

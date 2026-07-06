@@ -6,9 +6,9 @@ import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 vi.mock('../useApi', () => ({ useApi: () => ({ api: {}, session: { userId: 'u' } }) }));
 const createPlaylist = vi.fn();
 const addItemToPlaylist = vi.fn();
-const removeItemFromPlaylist = vi.fn();
+const updatePlaylist = vi.fn();
 vi.mock('@jellyfin/sdk/lib/utils/api/playlists-api', () => ({
-  getPlaylistsApi: () => ({ createPlaylist, addItemToPlaylist, removeItemFromPlaylist }),
+  getPlaylistsApi: () => ({ createPlaylist, addItemToPlaylist, updatePlaylist }),
 }));
 
 import { useToggleWatchlist } from './useToggleWatchlist';
@@ -20,7 +20,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 beforeEach(() => {
   createPlaylist.mockReset().mockResolvedValue({ data: { Id: 'NEW' } });
   addItemToPlaylist.mockReset().mockResolvedValue({ data: undefined });
-  removeItemFromPlaylist.mockReset().mockResolvedValue({ data: undefined });
+  updatePlaylist.mockReset().mockResolvedValue({ data: undefined });
   qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
 });
 
@@ -29,7 +29,9 @@ test('not a member + no playlist -> createPlaylist (seeded with the item)', asyn
   const { result } = renderHook(() => useToggleWatchlist(), { wrapper });
   act(() => result.current({ Id: 'x' } as BaseItemDto));
   await waitFor(() => expect(createPlaylist).toHaveBeenCalled());
-  expect(createPlaylist.mock.calls[0][0]).toMatchObject({ name: 'Saved for later', ids: ['x'], userId: 'u' });
+  expect(createPlaylist.mock.calls[0][0]).toMatchObject({
+    createPlaylistDto: { Name: 'Saved for later', Ids: ['x'], UserId: 'u' },
+  });
   expect(addItemToPlaylist).not.toHaveBeenCalled();
   // optimistic: item is in the cached list immediately
   expect((qc.getQueryData(['watchlist', 'u']) as { items: BaseItemDto[] }).items.map((i) => i.Id)).toContain('x');
@@ -44,12 +46,12 @@ test('not a member + existing playlist -> addItemToPlaylist', async () => {
   expect(createPlaylist).not.toHaveBeenCalled();
 });
 
-test('member -> removeItemFromPlaylist with the PlaylistItemId', async () => {
-  qc.setQueryData(['watchlist', 'u'], { playlistId: 'PL', items: [{ Id: 'x', PlaylistItemId: 'e1' }] });
+test('member -> updatePlaylist with the removed item excluded', async () => {
+  qc.setQueryData(['watchlist', 'u'], { playlistId: 'PL', items: [{ Id: 'x' }, { Id: 'y' }] });
   const { result } = renderHook(() => useToggleWatchlist(), { wrapper });
   act(() => result.current({ Id: 'x' } as BaseItemDto));
-  await waitFor(() => expect(removeItemFromPlaylist).toHaveBeenCalled());
-  expect(removeItemFromPlaylist.mock.calls[0][0]).toMatchObject({ playlistId: 'PL', entryIds: ['e1'] });
+  await waitFor(() => expect(updatePlaylist).toHaveBeenCalled());
+  expect(updatePlaylist.mock.calls[0][0]).toMatchObject({ playlistId: 'PL', updatePlaylistDto: { Ids: ['y'] } });
 });
 
 test('rolls back the optimistic add when the request fails', async () => {
