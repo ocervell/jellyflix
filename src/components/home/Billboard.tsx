@@ -1,7 +1,7 @@
 import { Play, Info } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getBackdropUrl, getLogoUrl } from '../../lib/jellyfin/images';
-import { cardTitle } from '../../lib/format';
+import { cardTitle, isResumable, playedPercent } from '../../lib/format';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import styles from './Billboard.module.css';
 
@@ -23,7 +23,12 @@ export default function Billboard({
         {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
         {item.Overview && <p className={styles.synopsis}>{item.Overview}</p>}
         <div className={styles.buttons}>
-          <button className={styles.play} onClick={() => onPlay(item)}><Play size={20} fill="currentColor" /> Play</button>
+          <button className={styles.play} onClick={() => onPlay(item)}>
+            <Play size={20} fill="currentColor" /> {isResumable(item) ? 'Continue' : 'Play'}
+            {isResumable(item) && (
+              <span className={styles.playProgress}><span style={{ width: `${playedPercent(item)}%` }} /></span>
+            )}
+          </button>
           <button className={styles.info} onClick={() => onMoreInfo(item)}><Info size={20} /> More Info</button>
         </div>
       </div>

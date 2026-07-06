@@ -3,7 +3,7 @@ import { Play } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { useItem } from '../../hooks/api/useItem';
 import { getBackdropUrl, getLogoUrl } from '../../lib/jellyfin/images';
-import { formatRuntime, cardTitle } from '../../lib/format';
+import { formatRuntime, cardTitle, isResumable, playedPercent } from '../../lib/format';
 import EpisodeList from './EpisodeList';
 import ItemActions from '../common/ItemActions';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
@@ -41,7 +41,12 @@ export default function DetailModal({
                 {cardTitle(item).subtitle && <div className={styles.episode}>{cardTitle(item).subtitle}</div>}
                 {/* series/season·episode for episodes; empty for movies/series */}
                 <div className={styles.heroButtons}>
-                  <button className={styles.play} onClick={() => onPlay(item)}><Play size={20} fill="currentColor" /> Play</button>
+                  <button className={styles.play} onClick={() => onPlay(item)}>
+                    <Play size={20} fill="currentColor" /> {isResumable(item) ? 'Continue' : 'Play'}
+                    {isResumable(item) && (
+                      <span className={styles.playProgress}><span style={{ width: `${playedPercent(item)}%` }} /></span>
+                    )}
+                  </button>
                   <ItemActions item={item} size="md" />
                 </div>
               </div>

@@ -12,7 +12,9 @@
 .episode { font-size: 16px; font-weight: 600; color: #e8e8e8; margin: -6px 0 14px;
   text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7); }
 .heroButtons { display: flex; gap: 12px; align-items: center; }
-.play { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #000; font-weight: 700; padding: 8px 24px; border-radius: var(--nf-radius); }
+.play { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #000; font-weight: 700; padding: 8px 24px; border-radius: var(--nf-radius); }
+.playProgress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(0,0,0,.2); }
+.playProgress > span { display: block; height: 100%; background: var(--nf-red); }
 .body { padding: 24px 40px 40px; }
 .metaRow { display: flex; gap: 12px; align-items: center; color: var(--nf-grey); margin-bottom: 16px; }
 .badge { border: 1px solid var(--nf-outline); padding: 0 6px; font-size: 12px; }

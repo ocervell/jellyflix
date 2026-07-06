@@ -16,6 +16,11 @@ export function playedPercent(item: BaseItemDto): number {
   return item.UserData?.PlayedPercentage ?? 0;
 }
 
+/** True when the item has a saved playback position to resume from (partially watched, not finished). */
+export function isResumable(item: BaseItemDto): boolean {
+  return !item.UserData?.Played && (item.UserData?.PlaybackPositionTicks ?? 0) > 0;
+}
+
 /**
  * Card display title/subtitle. For episodes the primary title is the series
  * name (so you can tell which show it is) and the subtitle carries the

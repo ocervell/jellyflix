@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
-import { ticksToSeconds, formatRuntime, playedPercent, formatTime, cardTitle } from './format';
+import { ticksToSeconds, formatRuntime, playedPercent, formatTime, cardTitle, isResumable } from './format';
 
 test('ticksToSeconds', () => {
   expect(ticksToSeconds(10_000_000)).toBe(1);
@@ -32,6 +32,12 @@ test('cardTitle: episode without numbers omits the S:E code', () => {
 test('cardTitle: episode missing SeriesName falls back to its own name', () => {
   expect(cardTitle({ Type: 'Episode', Name: 'Lone Ep' } as BaseItemDto))
     .toEqual({ title: 'Lone Ep', subtitle: 'Lone Ep' });
+});
+test('isResumable: true only when partially watched with a saved position', () => {
+  expect(isResumable({ UserData: { PlaybackPositionTicks: 5_000_000_000 } } as BaseItemDto)).toBe(true);
+  expect(isResumable({ UserData: { PlaybackPositionTicks: 0 } } as BaseItemDto)).toBe(false);
+  expect(isResumable({ UserData: { PlaybackPositionTicks: 5_000_000_000, Played: true } } as BaseItemDto)).toBe(false);
+  expect(isResumable({} as BaseItemDto)).toBe(false);
 });
 test('formatTime', () => {
   expect(formatTime(0)).toBe('0:00');
