@@ -1,0 +1,14 @@
+# Run Jellyflix locally.
+#   docker compose up --build          # build from source and run
+#   JELLYFIN_SERVER=https://your-jf ... docker compose up
+# Then open http://localhost:8080 and log in with your Jellyfin credentials.
+services:
+  jellyflix:
+    build: .
+    image: ocervell/jellyflix:latest
+    ports:
+      - "8080:80"
+    environment:
+      # The Jellyfin server the app proxies to. Point this at your instance.
+      JELLYFIN_SERVER: ${JELLYFIN_SERVER:-http://jellyfin:8096}
+    restart: unless-stopped

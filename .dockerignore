@@ -1,0 +1,26 @@
+# Never ship these into the build context / image
+node_modules
+dist
+coverage
+
+# Secrets & local env (IMPORTANT: .env.local holds credentials)
+.env
+.env.*
+
+# VCS / tooling / scratch
+.git
+.gitignore
+.github
+.superpowers
+
+# Reference clone of upstream jellyfin-web (research only, huge)
+jellyfin-web
+
+# Docs, specs, plans — not needed to build the app
+docs
+
+# Editor / OS cruft
+.vscode
+.idea
+.DS_Store
+*.log
