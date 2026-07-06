@@ -42,7 +42,7 @@ export default function DetailModal({
                 {/* series/season·episode for episodes; empty for movies/series */}
                 <div className={styles.heroButtons}>
                   <button className={styles.play} onClick={() => onPlay(item)}>
-                    <Play size={20} fill="currentColor" /> {isResumable(item) ? 'Continue' : 'Play'}
+                    <Play size={20} fill="currentColor" strokeWidth={0} /> {isResumable(item) ? 'Continue' : 'Play'}
                     {isResumable(item) && (
                       <span className={styles.playProgress}><span style={{ width: `${playedPercent(item)}%` }} /></span>
                     )}

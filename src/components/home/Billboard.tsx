@@ -24,7 +24,7 @@ export default function Billboard({
         {item.Overview && <p className={styles.synopsis}>{item.Overview}</p>}
         <div className={styles.buttons}>
           <button className={styles.play} onClick={() => onPlay(item)}>
-            <Play size={20} fill="currentColor" /> {isResumable(item) ? 'Continue' : 'Play'}
+            <Play size={20} fill="currentColor" strokeWidth={0} /> {isResumable(item) ? 'Continue' : 'Play'}
             {isResumable(item) && (
               <span className={styles.playProgress}><span style={{ width: `${playedPercent(item)}%` }} /></span>
             )}
