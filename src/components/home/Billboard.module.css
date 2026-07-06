@@ -10,11 +10,19 @@
 .subtitle { font-size: 18px; font-weight: 600; color: #e5e5e5; margin-bottom: 12px; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
 .synopsis { font-size: 18px; line-height: 1.4; text-shadow: 0 2px 4px rgba(0,0,0,.6); margin-bottom: 20px; }
 .buttons { display: flex; gap: 12px; }
-.play, .info { display: inline-flex; align-items: center; gap: 8px; padding: 8px 24px; border-radius: var(--nf-radius); font-weight: 700; }
+.play, .info { display: inline-flex; align-items: center; gap: 8px; padding: 8px 24px; border-radius: var(--nf-radius); font-weight: 700; white-space: nowrap; }
 .play { position: relative; overflow: hidden; background: #fff; color: #000; }
 .playProgress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(0,0,0,.2); }
 .playProgress > span { display: block; height: 100%; background: var(--nf-red); }
 .play:hover { background: rgba(255,255,255,.75); }
 .info { background: rgba(109,109,110,.7); color: #fff; }
 .info:hover { background: rgba(109,109,110,.4); }
-@media (max-width: 800px) { .content { max-width: 70%; bottom: 20vw; } }
+@media (max-width: 800px) {
+  .billboard { height: 62vh; min-height: 420px; }
+  .content { max-width: 88%; bottom: 16vw; }
+  .scrim {
+    background:
+      linear-gradient(90deg, rgba(20,20,20,.9) 0%, rgba(20,20,20,.4) 40%, transparent 70%),
+      linear-gradient(0deg, var(--nf-bg) 0%, rgba(20,20,20,.6) 22%, transparent 48%); }
+  .play, .info { padding: 8px 18px; }
+}
