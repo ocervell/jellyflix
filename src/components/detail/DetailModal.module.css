@@ -3,11 +3,14 @@
 .close { position: absolute; top: 16px; right: 16px; z-index: 5; width: 36px; height: 36px; border-radius: 50%; background: #181818; color: #fff; }
 .hero { position: relative; aspect-ratio: 16/9; }
 .heroBg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.heroScrim { position: absolute; inset: 0; background: linear-gradient(0deg, var(--nf-elevated-2), transparent 50%); }
+.heroScrim { position: absolute; inset: 0; background:
+  linear-gradient(0deg, var(--nf-elevated-2) 0%, rgba(0,0,0,.7) 32%, rgba(0,0,0,.28) 62%, transparent 88%); }
 .heroContent { position: absolute; left: 40px; bottom: 32px; }
 .logo { max-width: 320px; max-height: 140px; margin-bottom: 16px; }
-.title { font-size: 40px; font-weight: 800; margin-bottom: 16px; }
-.episode { font-size: 16px; font-weight: 600; color: #d2d2d2; margin: -6px 0 14px; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+.title { font-size: clamp(28px, 7vw, 40px); font-weight: 800; margin-bottom: 16px;
+  text-shadow: 0 2px 6px rgba(0,0,0,.9), 0 0 16px rgba(0,0,0,.6); }
+.episode { font-size: 16px; font-weight: 600; color: #e8e8e8; margin: -6px 0 14px;
+  text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7); }
 .heroButtons { display: flex; gap: 12px; align-items: center; }
 .play { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #000; font-weight: 700; padding: 8px 24px; border-radius: var(--nf-radius); }
 .body { padding: 24px 40px 40px; }
