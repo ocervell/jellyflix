@@ -62,3 +62,18 @@ test('rolls back the optimistic add when the request fails', async () => {
   await waitFor(() => expect(createPlaylist).toHaveBeenCalled());
   await waitFor(() => expect((qc.getQueryData(['watchlist', 'u']) as { items: BaseItemDto[] }).items).toHaveLength(0));
 });
+
+test('serializes concurrent toggles: two rapid saves create only one playlist', async () => {
+  qc.setQueryData(['watchlist', 'u'], { playlistId: null, items: [] });
+  const { result } = renderHook(() => useToggleWatchlist(), { wrapper });
+  act(() => {
+    result.current({ Id: 'a' } as BaseItemDto);
+    result.current({ Id: 'b' } as BaseItemDto);
+  });
+  await waitFor(() => expect(createPlaylist).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(addItemToPlaylist).toHaveBeenCalledTimes(1));
+  expect(createPlaylist.mock.calls[0][0]).toMatchObject({
+    createPlaylistDto: { Name: 'Saved for later', Ids: ['a'], UserId: 'u' },
+  });
+  expect(addItemToPlaylist.mock.calls[0][0]).toMatchObject({ playlistId: 'NEW', ids: ['b'], userId: 'u' });
+});
