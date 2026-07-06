@@ -25,7 +25,7 @@ export default function PreviewCard({
       <div className={styles.panel}>
         <div className={styles.actions}>
           <button className={styles.play} onClick={() => onPlay(item)} aria-label={`Play ${fullLabel}`} title="Play">
-            <Play size={18} fill="currentColor" />
+            <Play size={18} fill="currentColor" strokeWidth={0} />
           </button>
           <button className={styles.more} onClick={() => onOpen(item)} aria-label={`More info ${fullLabel}`} title="More info">
             <ChevronDown size={18} />
