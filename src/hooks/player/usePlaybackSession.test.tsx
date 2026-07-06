@@ -54,6 +54,32 @@ test('setAudioTrack renegotiates at the given position and keeps the selected au
   expect(result.current.audioIndex).toBe(2);
 });
 
+test('setAudioTrack renegotiates with the current MediaSourceId (server ignores AudioStreamIndex without it)', async () => {
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps' });
+  const { result } = renderHook(() => usePlaybackSession('ep1', () => 0));
+  await waitFor(() => expect(result.current.stream).not.toBeNull());
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps2' });
+  await act(async () => { await result.current.setAudioTrack(2); });
+  const lastCall = fetchPlaybackInfo.mock.calls[fetchPlaybackInfo.mock.calls.length - 1]!;
+  // MS.Id is 'm'; renegotiation must carry it or the server falls back to the default audio.
+  expect(lastCall[3]).toMatchObject({ audioStreamIndex: 2, mediaSourceId: 'm' });
+});
+
+test('a bitrate-only renegotiation (ABR shift) preserves the selected audio track', async () => {
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps' });
+  const { result } = renderHook(() => usePlaybackSession('ep1', () => 0));
+  await waitFor(() => expect(result.current.stream).not.toBeNull());
+  // User picks English (index 2).
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps2' });
+  await act(async () => { await result.current.setAudioTrack(2); });
+  expect(result.current.audioIndex).toBe(2);
+  // ABR later shifts quality with no explicit audio index — must keep index 2, not revert to default.
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps3' });
+  await act(async () => { await result.current.renegotiate({ maxBitrate: 4_000_000, position: 0 }); });
+  const lastCall = fetchPlaybackInfo.mock.calls[fetchPlaybackInfo.mock.calls.length - 1]!;
+  expect(lastCall[3]).toMatchObject({ maxBitrate: 4_000_000, audioStreamIndex: 2 });
+});
+
 test('currentBitrate is set to the measured bandwidth cap, not the source MediaSource.Bitrate', async () => {
   fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps' });
   const { result } = renderHook(() => usePlaybackSession('ep1', () => 0));

@@ -9,6 +9,10 @@ export type NegotiateParams = {
   maxBitrate?: number;
   audioStreamIndex?: number;
   subtitleStreamIndex?: number;
+  // The server only applies AudioStreamIndex/SubtitleStreamIndex when the request also
+  // identifies the media source; without it, it silently rebuilds the stream with the
+  // default tracks (so audio/subtitle switching no-ops). Pass the current source's Id.
+  mediaSourceId?: string;
 };
 
 /**
@@ -54,6 +58,7 @@ export async function fetchPlaybackInfo(
       MaxStreamingBitrate: params.maxBitrate ?? 120_000_000,
       AudioStreamIndex: params.audioStreamIndex,
       SubtitleStreamIndex: params.subtitleStreamIndex,
+      MediaSourceId: params.mediaSourceId,
       AutoOpenLiveStream: true,
     },
   });

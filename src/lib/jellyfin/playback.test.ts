@@ -86,6 +86,15 @@ test('fetchPlaybackInfo forwards negotiation params', async () => {
   expect(arg).toMatchObject({ UserId: 'u', StartTimeTicks: 50, MaxStreamingBitrate: 3_000_000, AudioStreamIndex: 2, SubtitleStreamIndex: 3 });
 });
 
+test('fetchPlaybackInfo forwards MediaSourceId so the server honors AudioStreamIndex on renegotiation', async () => {
+  // Without MediaSourceId the Jellyfin server silently ignores AudioStreamIndex and
+  // rebuilds the transcode URL with the default audio track — audio switching no-ops.
+  mockGetPostedPlaybackInfo.mockClear();
+  await fetchPlaybackInfo({} as never, 'u', 'itm', { audioStreamIndex: 2, mediaSourceId: 'ms-42' });
+  const arg = mockGetPostedPlaybackInfo.mock.calls[0][0].playbackInfoDto;
+  expect(arg).toMatchObject({ AudioStreamIndex: 2, MediaSourceId: 'ms-42' });
+});
+
 test('stopEncoding calls delete with api_key, deviceId, and playSessionId', async () => {
   const mockDelete = vi.fn().mockResolvedValue({});
   const api = {

@@ -33,12 +33,20 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
   const [currentBitrate, setCurrentBitrate] = useState(0);
   const [positionBaseSeconds, setPositionBaseSeconds] = useState(0);
   const playRef = useRef<{ playId: string; playSessionId: string }>({ playId: '', playSessionId: '' });
+  const msIdRef = useRef<string | undefined>(undefined);
   const startedFor = useRef<string | null>(null);
   const negId = useRef(0);
+  // Current audio selection, mirrored for renegotiate's stable closure. A bitrate-only
+  // renegotiation (automatic ABR shift) omits audioStreamIndex; without carrying the
+  // current selection forward, the server would rebuild the stream with the default
+  // audio and silently undo the user's track choice.
+  const audioIndexRef = useRef<number | undefined>(undefined);
+  audioIndexRef.current = audioIndex;
 
   const apply = useCallback((ms: MediaSourceInfo, playSessionId: string, playId: string, position: number) => {
     const resolved = resolveStreamUrl(serverUrl, accessToken, playId, ms, getDeviceId());
     playRef.current = { playId, playSessionId };
+    msIdRef.current = ms.Id ?? undefined;
     setMediaSource(ms);
     setStream({ ...resolved, startSeconds: resolved.isHls ? 0 : position });
     // HLS: the transcode timeline restarts at 0, so currentTime is relative to `position`.
@@ -76,7 +84,10 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
     await stopEncoding(api, getDeviceId(), playSessionId);
     const { mediaSource: ms, playSessionId: nps } = await fetchPlaybackInfo(api, userId, playId, {
       startTicks: Math.round(p.position * 10_000_000),
-      maxBitrate: p.maxBitrate, audioStreamIndex: p.audioStreamIndex, subtitleStreamIndex: p.subtitleStreamIndex,
+      maxBitrate: p.maxBitrate,
+      audioStreamIndex: p.audioStreamIndex ?? audioIndexRef.current,
+      subtitleStreamIndex: p.subtitleStreamIndex,
+      mediaSourceId: msIdRef.current,
     });
     if (myId !== negId.current) return; // superseded
     if (p.maxBitrate !== undefined) setCurrentBitrate(p.maxBitrate);
