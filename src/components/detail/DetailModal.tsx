@@ -3,7 +3,7 @@ import { Play } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { useItem } from '../../hooks/api/useItem';
 import { getBackdropUrl, getLogoUrl } from '../../lib/jellyfin/images';
-import { formatRuntime } from '../../lib/format';
+import { formatRuntime, cardTitle } from '../../lib/format';
 import EpisodeList from './EpisodeList';
 import ItemActions from '../common/ItemActions';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
@@ -36,8 +36,10 @@ export default function DetailModal({
               <div className={styles.heroScrim} />
               <div className={styles.heroContent}>
                 {getLogoUrl(api, item)
-                  ? <img className={styles.logo} src={getLogoUrl(api, item)!} alt={item.Name ?? ''} />
-                  : <h1 className={styles.title}>{item.Name}</h1>}
+                  ? <img className={styles.logo} src={getLogoUrl(api, item)!} alt={cardTitle(item).title} />
+                  : <h1 className={styles.title}>{cardTitle(item).title}</h1>}
+                {cardTitle(item).subtitle && <div className={styles.episode}>{cardTitle(item).subtitle}</div>}
+                {/* series/season·episode for episodes; empty for movies/series */}
                 <div className={styles.heroButtons}>
                   <button className={styles.play} onClick={() => onPlay(item)}><Play size={20} fill="currentColor" /> Play</button>
                   <ItemActions item={item} size="md" />
