@@ -3,3 +3,4 @@
 .btn:hover { border-color: #fff; background: rgba(40,40,40,.9); }
 .sm .btn { width: 30px; height: 30px; font-size: 13px; }
 .on { border-color: var(--nf-red); color: var(--nf-red); }
+.fav { border-color: var(--nf-red); color: var(--nf-red); }

@@ -11,6 +11,7 @@ import { useResumeItems } from '../hooks/api/useResumeItems';
 import { useNextUp } from '../hooks/api/useNextUp';
 import { useLatestMedia } from '../hooks/api/useLatestMedia';
 import { useFavorites } from '../hooks/api/useFavorites';
+import { useWatchlist } from '../hooks/api/useWatchlist';
 import styles from './Home.module.css';
 
 function LatestRow({ view, onOpen, onPlay }: { view: BaseItemDto; onOpen: (i: BaseItemDto) => void; onPlay: (i: BaseItemDto) => void }) {
@@ -24,6 +25,7 @@ export default function Home() {
   const resumeQ = useResumeItems();
   const nextUpQ = useNextUp();
   const favoritesQ = useFavorites();
+  const watchlist = useWatchlist();
   const [detail, setDetail] = useState<BaseItemDto | null>(null); // Task 13 renders DetailModal from this
 
   const mediaViews = useMemo(
@@ -41,9 +43,10 @@ export default function Home() {
       {hero && <Billboard item={hero} onPlay={onPlay} onMoreInfo={onOpen} />}
       <div className={styles.rows}>
         {resumeQ.isLoading ? <RowSkeleton title="Continue Watching" /> : <Row title="Continue Watching" items={resumeQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />}
-        <Row title="My List" items={favoritesQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />
         {nextUpQ.isLoading ? <RowSkeleton title="Next Up" /> : <Row title="Next Up" items={nextUpQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />}
+        <Row title="Saved for later" items={watchlist.items} onOpen={onOpen} onPlay={onPlay} />
         {mediaViews.map((v) => <LatestRow key={v.Id} view={v} onOpen={onOpen} onPlay={onPlay} />)}
+        <Row title="Favorites" items={favoritesQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />
       </div>
       {detail?.Id && (
         <DetailModal itemId={detail.Id} onClose={() => setDetail(null)} onPlay={onPlay} />
