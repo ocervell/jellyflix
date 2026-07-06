@@ -11,7 +11,9 @@
 .synopsis { font-size: 18px; line-height: 1.4; text-shadow: 0 2px 4px rgba(0,0,0,.6); margin-bottom: 20px; }
 .buttons { display: flex; gap: 12px; }
 .play, .info { display: inline-flex; align-items: center; gap: 8px; padding: 8px 24px; border-radius: var(--nf-radius); font-weight: 700; }
-.play { background: #fff; color: #000; }
+.play { position: relative; overflow: hidden; background: #fff; color: #000; }
+.playProgress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(0,0,0,.2); }
+.playProgress > span { display: block; height: 100%; background: var(--nf-red); }
 .play:hover { background: rgba(255,255,255,.75); }
 .info { background: rgba(109,109,110,.7); color: #fff; }
 .info:hover { background: rgba(109,109,110,.4); }
