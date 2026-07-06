@@ -26,7 +26,7 @@ jobs:
         with:
           context: .
           load: true
-          tags: ocervell/jellyflix:ci
+          tags: jahmyst/jellyflix:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -34,7 +34,7 @@ jobs:
         run: |
           # Deliberately point at an unreachable backend: nginx must still start
           # and serve the app (lazy /jf resolution), it just 502s on /jf.
-          docker run -d --name jellyflix -e JELLYFIN_SERVER=http://unreachable.invalid:8096 -p 8080:80 ocervell/jellyflix:ci
+          docker run -d --name jellyflix -e JELLYFIN_SERVER=http://unreachable.invalid:8096 -p 8080:80 jahmyst/jellyflix:ci
           for i in $(seq 1 15); do
             code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/ || true)
             [ "$code" = "200" ] && break

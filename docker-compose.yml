@@ -5,7 +5,7 @@
 services:
   jellyflix:
     build: .
-    image: ocervell/jellyflix:latest
+    image: jahmyst/jellyflix:latest
     ports:
       - "8080:80"
     environment:

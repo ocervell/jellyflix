@@ -2,7 +2,7 @@ name: publish
 
 # Tag a release to publish the image to Docker Hub:
 #   git tag v1.2.3 && git push origin v1.2.3
-# -> ocervell/jellyflix:1.2.3  (+ :latest, unless the tag is a pre-release like v1.2.3-beta.1)
+# -> jahmyst/jellyflix:1.2.3  (+ :latest, unless the tag is a pre-release like v1.2.3-beta.1)
 #
 # Requires two repo secrets: DOCKERHUB_USERNAME and DOCKERHUB_TOKEN.
 on:
@@ -40,7 +40,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ocervell/jellyflix
+          images: jahmyst/jellyflix
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}

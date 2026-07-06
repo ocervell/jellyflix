@@ -5,8 +5,8 @@
 <p align="center">
   <a href="https://github.com/ocervell/jellyflix/actions/workflows/docker.yml"><img src="https://github.com/ocervell/jellyflix/actions/workflows/docker.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/ocervell/jellyflix/releases"><img src="https://img.shields.io/github/v/release/ocervell/jellyflix?color=e50914" alt="Release"></a>
-  <a href="https://hub.docker.com/r/ocervell/jellyflix"><img src="https://img.shields.io/docker/pulls/ocervell/jellyflix?logo=docker&color=e50914" alt="Docker Pulls"></a>
-  <a href="https://hub.docker.com/r/ocervell/jellyflix/tags"><img src="https://img.shields.io/docker/image-size/ocervell/jellyflix/latest?logo=docker&label=image" alt="Image Size"></a>
+  <a href="https://hub.docker.com/r/jahmyst/jellyflix"><img src="https://img.shields.io/docker/pulls/jahmyst/jellyflix?logo=docker&color=e50914" alt="Docker Pulls"></a>
+  <a href="https://hub.docker.com/r/jahmyst/jellyflix/tags"><img src="https://img.shields.io/docker/image-size/jahmyst/jellyflix/latest?logo=docker&label=image" alt="Image Size"></a>
   <img src="https://img.shields.io/badge/arch-amd64%20%7C%20arm64-blue" alt="Architectures">
   <img src="https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white">
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white">
@@ -45,7 +45,7 @@ The image serves the built app with nginx and reverse-proxies `/jf` → your Jel
 ```sh
 docker run -d -p 8080:80 \
   -e JELLYFIN_SERVER=https://your-jellyfin.example.com \
-  ocervell/jellyflix:latest
+  jahmyst/jellyflix:latest
 ```
 
 Then open **http://localhost:8080** and log in with your Jellyfin credentials.
@@ -56,7 +56,7 @@ Then open **http://localhost:8080** and log in with your Jellyfin credentials.
 ```yaml
 services:
   jellyflix:
-    image: ocervell/jellyflix:latest
+    image: jahmyst/jellyflix:latest
     ports:
       - "8080:80"
     environment:
@@ -110,7 +110,7 @@ This keeps the browser same-origin (no CORS config on Jellyfin) and means the sa
 Tagging a release builds the multi-arch image and pushes it to Docker Hub:
 
 ```sh
-git tag v0.1.0 && git push origin v0.1.0     # → ocervell/jellyflix:0.1.0 + :latest
+git tag v0.1.0 && git push origin v0.1.0     # → jahmyst/jellyflix:0.1.0 + :latest
 ```
 
 (Requires `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN` repo secrets.)
