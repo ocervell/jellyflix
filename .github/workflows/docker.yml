@@ -30,9 +30,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Smoke test — serves the SPA and the /jf proxy config is valid
+      - name: Smoke test — nginx serves the SPA even if Jellyfin is unreachable
         run: |
-          docker run -d --name jellyflix -e JELLYFIN_SERVER=http://example.invalid:8096 -p 8080:80 ocervell/jellyflix:ci
+          # Deliberately point at an unreachable backend: nginx must still start
+          # and serve the app (lazy /jf resolution), it just 502s on /jf.
+          docker run -d --name jellyflix -e JELLYFIN_SERVER=http://unreachable.invalid:8096 -p 8080:80 ocervell/jellyflix:ci
           for i in $(seq 1 15); do
             code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/ || true)
             [ "$code" = "200" ] && break
@@ -42,6 +44,6 @@ jobs:
           [ "$code" = "200" ]
           # index.html is served for a deep SPA route too
           curl -fsS http://localhost:8080/some/deep/route | grep -q '<div id="root">'
-          echo "SPA fallback OK"
+          echo "SPA fallback OK (nginx started despite unreachable backend)"
           docker logs jellyflix
           docker rm -f jellyflix

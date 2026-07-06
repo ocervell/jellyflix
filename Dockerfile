@@ -19,6 +19,10 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 # nginx config template; ${JELLYFIN_SERVER} is substituted at container start
 COPY docker/default.conf.template /etc/nginx/templates/default.conf.template
+# Sets nginx's DNS resolver (from the container's resolv.conf) before startup,
+# so the /jf proxy can resolve JELLYFIN_SERVER lazily / per-request.
+COPY docker/10-resolver.sh /docker-entrypoint.d/10-resolver.sh
+RUN chmod +x /docker-entrypoint.d/10-resolver.sh
 
 # The Jellyfin server the app's /jf proxy targets. Override at runtime:
 #   docker run -e JELLYFIN_SERVER=https://your-jellyfin.example.com ...

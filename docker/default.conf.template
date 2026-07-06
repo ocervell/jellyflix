@@ -27,9 +27,16 @@ server {
 
     # Reverse-proxy the Jellyfin API + media. Mirrors the Vite dev proxy:
     # /jf/<path>  ->  ${JELLYFIN_SERVER}/<path>   (the /jf prefix is stripped).
+    #
+    # The upstream is resolved LAZILY (per request) via a variable + the resolver
+    # written by /docker-entrypoint.d/10-resolver.sh. That way nginx still starts
+    # and serves the app even if Jellyfin is unreachable/unresolvable at boot;
+    # only /jf requests fail (502) until it's reachable.
     location /jf/ {
-        proxy_pass              ${JELLYFIN_SERVER}/;
-        proxy_http_version      1.1;
+        set $jf_backend "${JELLYFIN_SERVER}";
+        rewrite ^/jf/(.*)$ /$1 break;
+        proxy_pass $jf_backend;
+        proxy_http_version 1.1;
 
         proxy_set_header Host              $proxy_host;
         proxy_set_header X-Real-IP         $remote_addr;
