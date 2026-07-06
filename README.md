@@ -2,6 +2,8 @@
 
 A Netflix-style web UI for Jellyfin. React + Vite + TypeScript, talking to a Jellyfin server via @jellyfin/sdk.
 
+![Jellyflix home screen](docs/screenshot.png)
+
 ## Features
 - **Custom player**: automatic adaptive quality, audio/subtitle selection, scrubber thumbnails (see `docs/trickplay-setup.md`).
 
