@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getItemsApi } from '@jellyfin/sdk/lib/utils/api/items-api';
 import { BaseItemKind, ItemFields, ItemSortBy, SortOrder, ImageType } from '@jellyfin/sdk/lib/generated-client';
+import { groupEpisodesBySeries } from '../../lib/rowGrouping';
 import { useApi } from '../useApi';
 
 export function useFavorites() {
@@ -12,14 +13,14 @@ export function useFavorites() {
         userId: session.userId,
         isFavorite: true,
         recursive: true,
-        includeItemTypes: [BaseItemKind.Movie, BaseItemKind.Series],
+        includeItemTypes: [BaseItemKind.Movie, BaseItemKind.Series, BaseItemKind.Episode],
         sortBy: [ItemSortBy.SortName],
         sortOrder: [SortOrder.Ascending],
         fields: [ItemFields.PrimaryImageAspectRatio],
         enableImageTypes: [ImageType.Primary, ImageType.Thumb],
         limit: 50,
       }, { signal });
-      return data.Items ?? [];
+      return groupEpisodesBySeries(data.Items ?? []);
     },
   });
 }
