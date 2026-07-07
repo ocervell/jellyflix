@@ -35,6 +35,6 @@ export function useWatchlist() {
   });
   const rawItems = q.data?.items ?? [];
   const { ids, entryById } = useMemo(() => indexWatchlist(rawItems), [rawItems]);
-  const items = useMemo(() => groupEpisodesBySeries(rawItems), [rawItems]);
+  const items: GroupedItem[] = useMemo(() => groupEpisodesBySeries(rawItems), [rawItems]);
   return { playlistId: q.data?.playlistId ?? null, items, membership: ids, entryById, isLoading: q.isLoading };
 }
