@@ -1,26 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
 import { getItemsApi } from '@jellyfin/sdk/lib/utils/api/items-api';
-import { BaseItemKind, ItemFields, ItemSortBy, SortOrder, ImageType } from '@jellyfin/sdk/lib/generated-client';
-import { groupEpisodesBySeries } from '../../lib/rowGrouping';
+import { BaseItemKind, ItemSortBy, SortOrder, ItemFields, ImageType } from '@jellyfin/sdk/lib/generated-client';
 import { useApi } from '../useApi';
+import { qk } from './queryKeys';
+import { groupEpisodesBySeries } from '../../lib/rowGrouping';
 
-export function useFavorites() {
+export function useRecentlyAdded() {
   const { api, session } = useApi();
   return useQuery({
-    queryKey: ['favorites', session.userId],
+    queryKey: qk.recentlyAdded(session.userId),
     queryFn: async ({ signal }) => {
       const { data } = await getItemsApi(api).getItems({
         userId: session.userId,
-        isFavorite: true,
         recursive: true,
         includeItemTypes: [BaseItemKind.Movie, BaseItemKind.Series, BaseItemKind.Episode],
-        sortBy: [ItemSortBy.SortName],
-        sortOrder: [SortOrder.Ascending],
+        sortBy: [ItemSortBy.DateCreated],
+        sortOrder: [SortOrder.Descending],
+        limit: 60, // over-fetch: grouping collapses episodes; slice to 20 after
         fields: [ItemFields.PrimaryImageAspectRatio],
         enableImageTypes: [ImageType.Primary, ImageType.Thumb],
-        limit: 50,
       }, { signal });
-      return groupEpisodesBySeries(data.Items ?? []);
+      return groupEpisodesBySeries(data.Items ?? []).slice(0, 20);
     },
   });
 }

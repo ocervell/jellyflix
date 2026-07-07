@@ -28,3 +28,24 @@ test('patches item X across array / {Items} / infinite / single shapes and rolls
   expect(favOf(qc.getQueryData(['one']) as BaseItemDto)).toBe(false);
   expect(qc.getQueryData(['other'])).toBe(otherBefore);
 });
+
+test('patches a member item nested inside a grouped card (groupMembers) and rolls back', () => {
+  const qc = new QueryClient();
+  const groupedCard = {
+    Id: 'S',
+    Type: 'Series',
+    groupMembers: [item('e1'), item('e2')],
+  } as unknown as BaseItemDto;
+  qc.setQueryData(['recentlyAdded', 'u'], [groupedCard]);
+
+  const rollback = applyItemUserDataToCache(qc, 'e1', { isFavorite: true });
+
+  type Grouped = BaseItemDto & { groupMembers: BaseItemDto[] };
+  const grouped = (qc.getQueryData(['recentlyAdded', 'u']) as Grouped[])[0];
+  expect(grouped.groupMembers[0].UserData?.IsFavorite).toBe(true);
+  expect(grouped.groupMembers[1].UserData?.IsFavorite).toBe(false);
+
+  rollback();
+  const groupedAfter = (qc.getQueryData(['recentlyAdded', 'u']) as Grouped[])[0];
+  expect(groupedAfter.groupMembers[0].UserData?.IsFavorite).toBe(false);
+});

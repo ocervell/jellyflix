@@ -36,3 +36,17 @@ test('with playlist -> items loaded, membership + entryById derived', async () =
   expect(result.current.entryById.get('x')).toBe('e1');
   expect(getPlaylistItems.mock.calls[0][0]).toMatchObject({ playlistId: 'PL', userId: 'u' });
 });
+
+test('groups episodes for display but indexes membership on the raw items', async () => {
+  getItems.mockResolvedValue({ data: { Items: [{ Id: 'PL', Name: 'Saved for later' }] } });
+  getPlaylistItems.mockResolvedValue({ data: { Items: [
+    { Id: 'e1', PlaylistItemId: 'p1', Type: 'Episode', SeriesId: 'S', SeriesName: 'Show' },
+    { Id: 'e2', PlaylistItemId: 'p2', Type: 'Episode', SeriesId: 'S', SeriesName: 'Show' },
+  ] } });
+  const { result } = renderHook(() => useWatchlist(), { wrapper });
+  await waitFor(() => expect(result.current.items).toHaveLength(1)); // collapsed to one series card
+  expect(result.current.items[0].Type).toBe('Series');
+  expect(result.current.membership.has('e1')).toBe(true);
+  expect(result.current.membership.has('e2')).toBe(true);
+  expect(result.current.entryById.get('e1')).toBe('p1');
+});

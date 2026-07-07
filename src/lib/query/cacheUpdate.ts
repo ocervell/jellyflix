@@ -9,7 +9,23 @@ function isItem(v: unknown): v is BaseItemDto {
 // Returns the (possibly new) value and whether it changed.
 function patchValue(value: unknown, itemId: string, patch: UserDataPatch): { value: unknown; changed: boolean } {
   if (isItem(value)) {
-    return value.Id === itemId ? { value: patchItemUserData(value, patch), changed: true } : { value, changed: false };
+    let cur: BaseItemDto = value;
+    let changed = false;
+    if (cur.Id === itemId) {
+      cur = patchItemUserData(cur, patch);
+      changed = true;
+    }
+    // Grouped cards (rowGrouping.ts) carry their collapsed episodes on `groupMembers`;
+    // a favorite/watched toggle targets a member id, so patch inside the group too.
+    const members = (cur as { groupMembers?: unknown }).groupMembers;
+    if (Array.isArray(members)) {
+      const r = patchValue(members, itemId, patch);
+      if (r.changed) {
+        cur = { ...cur, groupMembers: r.value } as BaseItemDto;
+        changed = true;
+      }
+    }
+    return changed ? { value: cur, changed: true } : { value, changed: false };
   }
   if (Array.isArray(value)) {
     let changed = false;
