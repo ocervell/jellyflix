@@ -80,6 +80,41 @@ test('a bitrate-only renegotiation (ABR shift) preserves the selected audio trac
   expect(lastCall[3]).toMatchObject({ maxBitrate: 4_000_000, audioStreamIndex: 2 });
 });
 
+test('a bitrate-only renegotiation preserves a burned-in (Encode) subtitle selection', async () => {
+  const MS_SUB = { Id: 'm', MediaStreams: [
+    { Index: 1, Type: 'Audio', IsDefault: true },
+    { Index: 3, Type: 'Subtitle', Language: 'fre', DeliveryMethod: 'Encode' },
+  ] };
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS_SUB, playSessionId: 'ps' });
+  const { result } = renderHook(() => usePlaybackSession('ep1', () => 0));
+  await waitFor(() => expect(result.current.stream).not.toBeNull());
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS_SUB, playSessionId: 'ps2' });
+  await act(async () => { await result.current.setSubtitleTrack(3); });
+  expect(result.current.subtitleIndex).toBe(3);
+  // ABR shift (bitrate only) must keep the burned-in subtitle, or the next quality change wipes it.
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS_SUB, playSessionId: 'ps3' });
+  await act(async () => { await result.current.renegotiate({ maxBitrate: 4_000_000, position: 0 }); });
+  const lastCall = fetchPlaybackInfo.mock.calls[fetchPlaybackInfo.mock.calls.length - 1]!;
+  expect(lastCall[3]).toMatchObject({ maxBitrate: 4_000_000, subtitleStreamIndex: 3 });
+});
+
+test('a bitrate-only renegotiation does NOT re-send an External subtitle (it renders client-side)', async () => {
+  const MS_EXT = { Id: 'm', MediaStreams: [
+    { Index: 1, Type: 'Audio', IsDefault: true },
+    { Index: 3, Type: 'Subtitle', Language: 'eng', DeliveryMethod: 'External', DeliveryUrl: '/s3' },
+  ] };
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS_EXT, playSessionId: 'ps' });
+  const { result } = renderHook(() => usePlaybackSession('ep1', () => 0));
+  await waitFor(() => expect(result.current.stream).not.toBeNull());
+  await act(async () => { await result.current.setSubtitleTrack(3); }); // External: client-side, no renegotiation
+  expect(result.current.subtitleIndex).toBe(3);
+  fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS_EXT, playSessionId: 'ps3' });
+  await act(async () => { await result.current.renegotiate({ maxBitrate: 4_000_000, position: 0 }); });
+  const lastCall = fetchPlaybackInfo.mock.calls[fetchPlaybackInfo.mock.calls.length - 1]!;
+  // Burning an External sub into the transcode would be wrong — leave it to the client <track>.
+  expect(lastCall[3].subtitleStreamIndex).toBeUndefined();
+});
+
 test('currentBitrate is set to the measured bandwidth cap, not the source MediaSource.Bitrate', async () => {
   fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps' });
   const { result } = renderHook(() => usePlaybackSession('ep1', () => 0));

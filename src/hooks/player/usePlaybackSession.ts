@@ -42,6 +42,13 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
   // audio and silently undo the user's track choice.
   const audioIndexRef = useRef<number | undefined>(undefined);
   audioIndexRef.current = audioIndex;
+  // Same for the subtitle selection — but only a burned-in (Encode) subtitle must be carried
+  // across a bitrate-only renegotiation. External subs render client-side (a <track>) and
+  // survive the stream swap on their own, so re-sending their index would wrongly burn them in.
+  const subtitleIndexRef = useRef<number | undefined>(undefined);
+  subtitleIndexRef.current = subtitleIndex;
+  const mediaSourceRef = useRef<MediaSourceInfo | null>(null);
+  mediaSourceRef.current = mediaSource;
 
   const apply = useCallback((ms: MediaSourceInfo, playSessionId: string, playId: string, position: number) => {
     const resolved = resolveStreamUrl(serverUrl, accessToken, playId, ms, getDeviceId());
@@ -78,6 +85,15 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
     return () => { active = false; startedFor.current = null; };
   }, [item, rawItemId, api, userId, apply]);
 
+  // Carry the current burned-in subtitle through a renegotiation that doesn't name one
+  // (e.g. an ABR bitrate shift). External subs are client-side, so leave them out.
+  const preservedSubtitleIndex = useCallback((): number | undefined => {
+    const idx = subtitleIndexRef.current;
+    if (idx == null || !mediaSourceRef.current) return undefined;
+    const cur = getSubtitleTracks(mediaSourceRef.current).find((t) => t.index === idx);
+    return cur && cur.deliveryMethod !== 'External' ? idx : undefined;
+  }, []);
+
   const renegotiate = useCallback(async (p: NegotiateParams & { position: number }) => {
     const myId = ++negId.current;
     const { playId, playSessionId } = playRef.current;
@@ -86,13 +102,13 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
       startTicks: Math.round(p.position * 10_000_000),
       maxBitrate: p.maxBitrate,
       audioStreamIndex: p.audioStreamIndex ?? audioIndexRef.current,
-      subtitleStreamIndex: p.subtitleStreamIndex,
+      subtitleStreamIndex: p.subtitleStreamIndex ?? preservedSubtitleIndex(),
       mediaSourceId: msIdRef.current,
     });
     if (myId !== negId.current) return; // superseded
     if (p.maxBitrate !== undefined) setCurrentBitrate(p.maxBitrate);
     apply(ms, nps, playId, p.position);
-  }, [api, userId, apply]);
+  }, [api, userId, apply, preservedSubtitleIndex]);
 
   const setAudioTrack = useCallback(async (index: number) => {
     setAudioIndex(index);
