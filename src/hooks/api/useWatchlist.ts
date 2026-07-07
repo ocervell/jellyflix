@@ -6,6 +6,8 @@ import { BaseItemKind, ItemFields, ImageType } from '@jellyfin/sdk/lib/generated
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import { useApi } from '../useApi';
 import { PLAYLIST_NAME, indexWatchlist } from '../../lib/jellyfin/watchlist';
+import { groupEpisodesBySeries } from '../../lib/rowGrouping';
+import type { GroupedItem } from '../../lib/rowGrouping';
 
 export type WatchlistData = { playlistId: string | null; items: BaseItemDto[] };
 
@@ -31,7 +33,8 @@ export function useWatchlist() {
       return { playlistId: pl.Id, items: res.data.Items ?? [] };
     },
   });
-  const items = q.data?.items ?? [];
-  const { ids, entryById } = useMemo(() => indexWatchlist(items), [items]);
+  const rawItems = q.data?.items ?? [];
+  const { ids, entryById } = useMemo(() => indexWatchlist(rawItems), [rawItems]);
+  const items = useMemo(() => groupEpisodesBySeries(rawItems), [rawItems]);
   return { playlistId: q.data?.playlistId ?? null, items, membership: ids, entryById, isLoading: q.isLoading };
 }
