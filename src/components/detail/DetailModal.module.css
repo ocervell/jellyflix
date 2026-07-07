@@ -1,5 +1,9 @@
-.backdrop { position: fixed; inset: 0; z-index: 200; background: var(--nf-scrim); display: grid; place-items: start center; overflow-y: auto; padding: 40px 0; }
-.modal { position: relative; width: min(900px, 92vw); background: var(--nf-elevated-2); border-radius: 8px; overflow: hidden; }
+.backdrop { position: fixed; inset: 0; z-index: 200; background: var(--nf-scrim); display: grid; place-items: start center; overflow-y: auto; padding: 40px 0; animation: backdropIn 180ms ease-out; }
+.modal { position: relative; width: min(900px, 92vw); background: var(--nf-elevated-2); border-radius: 8px; overflow: hidden; animation: modalIn 260ms cubic-bezier(.2, .8, .2, 1); }
+
+@keyframes backdropIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalIn { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .backdrop, .modal { animation: none; } }
 .close { position: absolute; top: 16px; right: 16px; z-index: 5; width: 36px; height: 36px; border-radius: 50%; background: #181818; color: #fff; }
 .hero { position: relative; aspect-ratio: 16/9; }
 .heroBg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -21,3 +25,11 @@
 .overview { line-height: 1.5; margin-bottom: 12px; }
 .genres { color: var(--nf-grey); font-size: 14px; }
 .loading { padding: 80px; text-align: center; color: var(--nf-grey); }
+
+/* On phones the panel was a top-aligned card with home rows peeking below it.
+   Make it fill the screen instead: full width/height, square corners, and it
+   scrolls internally when the content is taller than the viewport. */
+@media (max-width: 600px) {
+  .backdrop { padding: 0; }
+  .modal { width: 100%; min-height: 100dvh; border-radius: 0; }
+}
