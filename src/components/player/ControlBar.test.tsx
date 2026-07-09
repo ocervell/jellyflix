@@ -15,3 +15,13 @@ test('play/pause and skip buttons call the engine', () => {
   fireEvent.click(screen.getByRole('button', { name: /forward/i }));
   expect((engine as never as { seekBy: (n: number) => void }).seekBy).toHaveBeenCalledWith(10);
 });
+
+test('volume slider stays in the DOM (hover-reveal) and mute/fullscreen are reachable', () => {
+  const engine = makeEngine();
+  render(<ControlBar engine={engine} title="X" onBack={() => {}} onScrub={() => {}} onHover={() => {}} menuOpen={false} extras={null} />);
+  expect(screen.getByRole('slider', { name: 'Volume' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /mute/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /fullscreen/i })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /rewind/i }));
+  expect((engine as never as { seekBy: (n: number) => void }).seekBy).toHaveBeenCalledWith(-10);
+});
