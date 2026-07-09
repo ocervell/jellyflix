@@ -12,6 +12,10 @@ export default function TrackMenu({
 }) {
   const [open, setOpen] = useState(false);
   const toggle = () => { const n = !open; setOpen(n); onOpenChange(n); };
+  // Close the menu when a track is picked so it's obvious the choice registered.
+  const close = () => { setOpen(false); onOpenChange(false); };
+  const pickAudio = (index: number) => { onAudio(index); close(); };
+  const pickSubtitle = (index: number | null) => { onSubtitle(index); close(); };
   return (
     <div className={styles.wrap}>
       <button onClick={toggle} aria-label="Audio and subtitles" aria-expanded={open}>💬</button>
@@ -20,18 +24,18 @@ export default function TrackMenu({
           <div className={styles.col}>
             <h4>Audio</h4>
             {audioTracks.map((t) => (
-              <button key={t.index} className={t.index === audioIndex ? styles.active : ''} onClick={() => onAudio(t.index)}>
+              <button key={t.index} className={t.index === audioIndex ? styles.active : ''} onClick={() => pickAudio(t.index)}>
                 {t.index === audioIndex ? '✓ ' : ''}{t.label}
               </button>
             ))}
           </div>
           <div className={styles.col}>
             <h4>Subtitles</h4>
-            <button className={subtitleIndex == null ? styles.active : ''} onClick={() => onSubtitle(null)}>
+            <button className={subtitleIndex == null ? styles.active : ''} onClick={() => pickSubtitle(null)}>
               {subtitleIndex == null ? '✓ ' : ''}Off
             </button>
             {subtitleTracks.map((t) => (
-              <button key={t.index} className={t.index === subtitleIndex ? styles.active : ''} onClick={() => onSubtitle(t.index)}>
+              <button key={t.index} className={t.index === subtitleIndex ? styles.active : ''} onClick={() => pickSubtitle(t.index)}>
                 {t.index === subtitleIndex ? '✓ ' : ''}{t.label}
               </button>
             ))}
