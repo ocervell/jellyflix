@@ -13,14 +13,16 @@ function VolumeIcon({ muted, volume }: { muted: boolean; volume: number }) {
 }
 
 export default function ControlBar({
-  engine, title, onBack, onScrub, onHover, menuOpen, extras, bubbleSlot,
+  engine, title, onBack, onScrub, onHover, menuOpen, extras, bubbleSlot, buffering,
 }: {
   engine: VideoEngine; title: string; onBack: () => void;
   onScrub: (s: number) => void; onHover: (info: { seconds: number; x: number } | null) => void;
-  menuOpen: boolean; extras: React.ReactNode; bubbleSlot?: React.ReactNode;
+  menuOpen: boolean; extras: React.ReactNode; bubbleSlot?: React.ReactNode; buffering?: boolean;
 }) {
   const { state } = engine;
-  const { visible, ping } = useAutoHide(!state.paused && !menuOpen);
+  // Keep the controls (and the buffering spinner) visible while stalled — auto-hide only
+  // during smooth playback, not while the user is waiting on a reconnect.
+  const { visible, ping } = useAutoHide(!state.paused && !menuOpen && !buffering);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -41,10 +43,10 @@ export default function ControlBar({
   }, [engine, state.volume, onBack, ping]);
 
   const remaining = Math.max(0, state.duration - state.currentTime);
-  // While the stream is still loading (metadata not in yet) or buffering, show the Pause
-  // icon: the player autoplays, so a Play icon makes users think they must press it and
-  // click twice, flickering play/pause. Pause signals "it's already starting".
-  const playing = !state.paused || state.duration === 0 || state.waiting;
+  // While the stream is still loading (metadata not in yet) or buffering/reloading, show
+  // the Pause icon: the player autoplays, so a Play icon makes users think they must press
+  // it and click twice, flickering play/pause. Pause signals "it's already going".
+  const playing = !state.paused || state.duration === 0 || state.waiting || !!buffering;
   return (
     <div className={visible ? styles.wrap : `${styles.wrap} ${styles.hidden}`} onPointerMove={ping}>
       <div className={styles.top}>
@@ -52,6 +54,7 @@ export default function ControlBar({
         <span className={styles.title}>{title}</span>
       </div>
       <div className={styles.center}>
+        {buffering && <div className={styles.spinner} aria-label="Buffering" role="status" />}
         <button className={styles.bigPlay} onClick={engine.togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
           {playing ? <Pause size={40} fill="currentColor" strokeWidth={0} /> : <Play size={40} fill="currentColor" strokeWidth={0} />}
         </button>

@@ -5,7 +5,7 @@ import { useAbrController } from './useAbrController';
 test('fires a downshift after repeated stalls', () => {
   vi.useFakeTimers();
   const onShift = vi.fn();
-  let engineState = { paused: false, currentTime: 10, duration: 100, bufferedEnd: 11, volume: 1, muted: false, waiting: true, stallCount: 0 };
+  let engineState = { paused: false, currentTime: 10, duration: 100, bufferedEnd: 11, volume: 1, muted: false, waiting: true, stallCount: 0, readyState: 4 };
   const { rerender } = renderHook(({ s }) => useAbrController({ engineState: s, getPosition: () => 10, bandwidth: 8_000_000, currentBitrate: 20_000_000, isTranscoding: true, onShift }), { initialProps: { s: engineState } });
   // simulate two stalls + starved buffer across sample windows
   for (let i = 0; i < 3; i++) {

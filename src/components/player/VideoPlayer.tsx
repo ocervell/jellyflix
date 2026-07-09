@@ -38,6 +38,29 @@ export default function VideoPlayer({
     onEngineState?.(engine.state);
   }, [engine.state, onEngineState]);
 
+  // Buffering / reconnect UX: once playback has started, hold the last video frame
+  // (captured on stall) instead of flashing the media backdrop, and show a spinner.
+  // A user pause keeps readyState at 4; a stall/reload drops it below 3.
+  const [started, setStarted] = useState(false);
+  const [frameHold, setFrameHold] = useState<string | null>(null);
+  useEffect(() => {
+    const video = videoRef.current; if (!video) return;
+    const onPlaying = () => { setStarted(true); setFrameHold(null); };
+    const onWaiting = () => {
+      if (!video.videoWidth) return;
+      try {
+        const c = document.createElement('canvas');
+        c.width = video.videoWidth; c.height = video.videoHeight;
+        c.getContext('2d')?.drawImage(video, 0, 0);
+        setFrameHold(c.toDataURL('image/jpeg', 0.6));
+      } catch { /* cross-origin/tainted frame — skip the hold */ }
+    };
+    video.addEventListener('playing', onPlaying);
+    video.addEventListener('waiting', onWaiting);
+    return () => { video.removeEventListener('playing', onPlaying); video.removeEventListener('waiting', onWaiting); };
+  }, [videoRef]);
+  const buffering = started && engine.state.readyState < 3;
+
   // The selected external subtitle (if any) is drawn by SubtitleOverlay below from
   // fetched cue data. Encode subs are burned into the video, so they need no overlay.
   const selectedSub = session.subtitleTracks.find(
@@ -54,11 +77,12 @@ export default function VideoPlayer({
 
   return (
     <div className={styles.wrap}>
-      <video ref={videoRef} className={styles.video} poster={poster ?? undefined} autoPlay />
+      <video ref={videoRef} className={styles.video} poster={started ? undefined : (poster ?? undefined)} autoPlay />
+      {buffering && frameHold && <img className={styles.frameHold} src={frameHold} alt="" />}
       <SubtitleOverlay track={selectedSub} currentTime={engine.state.currentTime}
         serverUrl={appSession.serverUrl} token={appSession.accessToken} />
       <ControlBar
-        engine={engine} title={title} onBack={onBack} onScrub={onScrub} onHover={setHover} menuOpen={menuOpen} extras={extras}
+        engine={engine} title={title} onBack={onBack} onScrub={onScrub} onHover={setHover} menuOpen={menuOpen} extras={extras} buffering={buffering}
         bubbleSlot={<TrickplayBubble trickplay={trickplay ?? null} serverUrl={appSession.serverUrl} token={appSession.accessToken} hover={hover} />}
       />
     </div>

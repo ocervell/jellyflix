@@ -1,2 +1,5 @@
 .wrap { position: fixed; inset: 0; background: #000; z-index: 300; }
 .video { width: 100%; height: 100%; }
+/* Last-frame hold shown over the video while it stalls/reloads, so a buffering
+   stream keeps the current picture instead of flashing the media backdrop. */
+.frameHold { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; z-index: 1; }

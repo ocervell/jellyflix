@@ -29,6 +29,14 @@ test('paused on a ready video (duration > 0) shows Play', () => {
   expect(screen.getAllByRole('button', { name: 'Play' }).length).toBeGreaterThan(0);
 });
 
+test('buffering shows a spinner and forces the Pause icon even while paused', () => {
+  const engine = makeEngine({ state: { paused: true, currentTime: 30, duration: 100, bufferedEnd: 30, volume: 1, muted: false, waiting: false, stallCount: 0, readyState: 1 } });
+  render(<ControlBar engine={engine} title="X" onBack={() => {}} onScrub={() => {}} onHover={() => {}} menuOpen={false} extras={null} buffering />);
+  expect(screen.getByRole('status', { name: /buffering/i })).toBeInTheDocument();
+  expect(screen.getAllByRole('button', { name: 'Pause' }).length).toBeGreaterThan(0);
+  expect(screen.queryByRole('button', { name: 'Play' })).toBeNull();
+});
+
 test('volume slider stays in the DOM (hover-reveal) and mute/fullscreen are reachable', () => {
   const engine = makeEngine();
   render(<ControlBar engine={engine} title="X" onBack={() => {}} onScrub={() => {}} onHover={() => {}} menuOpen={false} extras={null} />);

@@ -12,7 +12,7 @@ import VideoPlayer from '../components/player/VideoPlayer';
 
 const IDLE: EngineState = {
   paused: true, currentTime: 0, duration: 0, bufferedEnd: 0,
-  volume: 1, muted: false, waiting: false, stallCount: 0,
+  volume: 1, muted: false, waiting: false, stallCount: 0, readyState: 0,
 };
 
 export default function Watch() {

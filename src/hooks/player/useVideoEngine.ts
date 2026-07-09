@@ -4,6 +4,10 @@ import Hls from 'hls.js';
 export type EngineState = {
   paused: boolean; currentTime: number; duration: number; bufferedEnd: number;
   volume: number; muted: boolean; waiting: boolean; stallCount: number;
+  // HTMLMediaElement.readyState: 4 = HAVE_ENOUGH_DATA (playing or user-paused),
+  // < 3 = not enough buffered to play forward (stalling / reloading). This is how we
+  // tell "buffering" apart from "the user paused" (which keeps readyState at 4).
+  readyState: number;
 };
 
 export type VideoEngine = {
@@ -16,7 +20,7 @@ export type VideoEngine = {
 
 const INITIAL: EngineState = {
   paused: true, currentTime: 0, duration: 0, bufferedEnd: 0,
-  volume: 1, muted: false, waiting: false, stallCount: 0,
+  volume: 1, muted: false, waiting: false, stallCount: 0, readyState: 0,
 };
 
 export function useVideoEngine(opts: { src: string; isHls: boolean; startSeconds: number; onError: (msg: string) => void }): VideoEngine {
@@ -61,11 +65,12 @@ export function useVideoEngine(opts: { src: string; isHls: boolean; startSeconds
       currentTime: video.currentTime,
       duration: Number.isFinite(video.duration) ? video.duration : 0,
       bufferedEnd: video.buffered.length ? video.buffered.end(video.buffered.length - 1) : 0,
-      volume: video.volume, muted: video.muted,
+      volume: video.volume, muted: video.muted, readyState: video.readyState,
     }));
     const onWaiting = () => setState((s) => ({ ...s, waiting: true, stallCount: s.stallCount + 1 }));
     const onPlaying = () => setState((s) => ({ ...s, waiting: false }));
-    const evts = ['timeupdate', 'durationchange', 'progress', 'play', 'pause', 'volumechange'] as const;
+    const evts = ['timeupdate', 'durationchange', 'progress', 'play', 'pause', 'volumechange',
+      'waiting', 'playing', 'canplay', 'canplaythrough', 'loadeddata', 'emptied', 'seeking', 'seeked'] as const;
     evts.forEach((e) => video.addEventListener(e, sync));
     video.addEventListener('waiting', onWaiting);
     video.addEventListener('stalled', onWaiting);
