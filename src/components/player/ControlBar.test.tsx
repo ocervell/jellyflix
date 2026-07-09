@@ -16,6 +16,19 @@ test('play/pause and skip buttons call the engine', () => {
   expect((engine as never as { seekBy: (n: number) => void }).seekBy).toHaveBeenCalledWith(10);
 });
 
+test('while loading (duration 0, paused) shows Pause not Play, so autoplay start is obvious', () => {
+  const engine = makeEngine({ state: { paused: true, currentTime: 0, duration: 0, bufferedEnd: 0, volume: 1, muted: false, waiting: false, stallCount: 0 } });
+  render(<ControlBar engine={engine} title="X" onBack={() => {}} onScrub={() => {}} onHover={() => {}} menuOpen={false} extras={null} />);
+  expect(screen.getAllByRole('button', { name: 'Pause' }).length).toBeGreaterThan(0);
+  expect(screen.queryByRole('button', { name: 'Play' })).toBeNull();
+});
+
+test('paused on a ready video (duration > 0) shows Play', () => {
+  const engine = makeEngine({ state: { paused: true, currentTime: 10, duration: 100, bufferedEnd: 20, volume: 1, muted: false, waiting: false, stallCount: 0 } });
+  render(<ControlBar engine={engine} title="X" onBack={() => {}} onScrub={() => {}} onHover={() => {}} menuOpen={false} extras={null} />);
+  expect(screen.getAllByRole('button', { name: 'Play' }).length).toBeGreaterThan(0);
+});
+
 test('volume slider stays in the DOM (hover-reveal) and mute/fullscreen are reachable', () => {
   const engine = makeEngine();
   render(<ControlBar engine={engine} title="X" onBack={() => {}} onScrub={() => {}} onHover={() => {}} menuOpen={false} extras={null} />);

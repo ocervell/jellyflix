@@ -41,6 +41,10 @@ export default function ControlBar({
   }, [engine, state.volume, onBack, ping]);
 
   const remaining = Math.max(0, state.duration - state.currentTime);
+  // While the stream is still loading (metadata not in yet) or buffering, show the Pause
+  // icon: the player autoplays, so a Play icon makes users think they must press it and
+  // click twice, flickering play/pause. Pause signals "it's already starting".
+  const playing = !state.paused || state.duration === 0 || state.waiting;
   return (
     <div className={visible ? styles.wrap : `${styles.wrap} ${styles.hidden}`} onPointerMove={ping}>
       <div className={styles.top}>
@@ -48,8 +52,8 @@ export default function ControlBar({
         <span className={styles.title}>{title}</span>
       </div>
       <div className={styles.center}>
-        <button className={styles.bigPlay} onClick={engine.togglePlay} aria-label={state.paused ? 'Play' : 'Pause'}>
-          {state.paused ? <Play size={40} fill="currentColor" strokeWidth={0} /> : <Pause size={40} fill="currentColor" strokeWidth={0} />}
+        <button className={styles.bigPlay} onClick={engine.togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
+          {playing ? <Pause size={40} fill="currentColor" strokeWidth={0} /> : <Play size={40} fill="currentColor" strokeWidth={0} />}
         </button>
       </div>
       <div className={styles.bottom}>
@@ -58,8 +62,8 @@ export default function ControlBar({
           <Scrubber currentTime={state.currentTime} duration={state.duration} bufferedEnd={state.bufferedEnd} onScrub={onScrub} onHover={onHover} />
         </div>
         <div className={styles.buttons}>
-          <button onClick={engine.togglePlay} aria-label={state.paused ? 'Play' : 'Pause'}>
-            {state.paused ? <Play size={20} fill="currentColor" strokeWidth={0} /> : <Pause size={20} fill="currentColor" strokeWidth={0} />}
+          <button onClick={engine.togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
+            {playing ? <Pause size={20} fill="currentColor" strokeWidth={0} /> : <Play size={20} fill="currentColor" strokeWidth={0} />}
           </button>
           <button className={styles.icon10} onClick={() => engine.seekBy(-10)} aria-label="Rewind 10 seconds">
             <RotateCcw size={22} /><span className={styles.num} aria-hidden="true">10</span>
