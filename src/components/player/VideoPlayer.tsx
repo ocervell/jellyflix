@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useVideoEngine, type EngineState } from '../../hooks/player/useVideoEngine';
 import ControlBar from './ControlBar';
 import TrackMenu from './TrackMenu';
 import TrickplayBubble from './TrickplayBubble';
-import { subtitleTrackUrl } from '../../lib/jellyfin/mediaStreams';
+import SubtitleOverlay from './SubtitleOverlay';
 import { useApi } from '../../hooks/useApi';
 import type { PlaybackSession } from '../../hooks/player/usePlaybackSession';
 import type { Trickplay } from '../../lib/jellyfin/trickplay';
@@ -38,20 +38,11 @@ export default function VideoPlayer({
     onEngineState?.(engine.state);
   }, [engine.state, onEngineState]);
 
-  // External subtitle <track>s with a resolvable URL; show the selected one.
-  // Filtered so the rendered <track> list stays 1:1 with video.textTracks.
-  const externalSubs = useMemo(
-    () => session.subtitleTracks.filter(
-      (t) => t.deliveryMethod === 'External' && subtitleTrackUrl(appSession.serverUrl, appSession.accessToken, t) !== null,
-    ),
-    [session.subtitleTracks, appSession.serverUrl, appSession.accessToken],
-  );
-  useEffect(() => {
-    const video = videoRef.current; if (!video) return;
-    Array.from(video.textTracks).forEach((tt, i) => {
-      tt.mode = externalSubs[i]?.index === session.subtitleIndex ? 'showing' : 'disabled';
-    });
-  }, [session.subtitleIndex, externalSubs, videoRef, stream.url]);
+  // The selected external subtitle (if any) is drawn by SubtitleOverlay below from
+  // fetched cue data. Encode subs are burned into the video, so they need no overlay.
+  const selectedSub = session.subtitleTracks.find(
+    (t) => t.index === session.subtitleIndex && t.deliveryMethod === 'External',
+  ) ?? null;
 
   const onScrub = useCallback((s: number) => engine.seek(s), [engine]);
   const extras = (
@@ -63,12 +54,9 @@ export default function VideoPlayer({
 
   return (
     <div className={styles.wrap}>
-      <video ref={videoRef} className={styles.video} poster={poster ?? undefined} autoPlay>
-        {externalSubs.map((t) => {
-          const url = subtitleTrackUrl(appSession.serverUrl, appSession.accessToken, t)!;
-          return <track key={t.index} kind="subtitles" srcLang={t.language ?? 'und'} label={t.label} src={url} />;
-        })}
-      </video>
+      <video ref={videoRef} className={styles.video} poster={poster ?? undefined} autoPlay />
+      <SubtitleOverlay track={selectedSub} currentTime={engine.state.currentTime}
+        serverUrl={appSession.serverUrl} token={appSession.accessToken} />
       <ControlBar
         engine={engine} title={title} onBack={onBack} onScrub={onScrub} onHover={setHover} menuOpen={menuOpen} extras={extras}
         bubbleSlot={<TrickplayBubble trickplay={trickplay ?? null} serverUrl={appSession.serverUrl} token={appSession.accessToken} hover={hover} />}

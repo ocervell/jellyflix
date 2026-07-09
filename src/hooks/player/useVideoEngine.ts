@@ -34,10 +34,7 @@ export function useVideoEngine(opts: { src: string; isHls: boolean; startSeconds
     if (isHls && Hls.isSupported()) {
       // startPosition seeks the transcode to the resume point. Jellyfin's HLS manifest is
       // absolute (full duration), so without this a resumed episode plays from the start.
-      // renderTextTracksNatively:false stops hls.js from managing (and force-disabling) the
-      // <video>'s TextTracks — our subtitles are external VTT <track>s, and with the default
-      // (true) hls.js resets their mode to 'disabled' so transcoded-episode subs never show.
-      hls = new Hls({ startPosition: startSeconds > 0 ? startSeconds : -1, renderTextTracksNatively: false });
+      hls = new Hls({ startPosition: startSeconds > 0 ? startSeconds : -1 });
       hls.loadSource(src);
       hls.attachMedia(video);
       hls.on(Hls.Events.ERROR, (_e, data) => {
