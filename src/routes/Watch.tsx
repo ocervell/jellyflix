@@ -55,9 +55,20 @@ export default function Watch() {
     prevReportedRef.current = { playId: session.playId, playSessionId: session.playSessionId };
   }, [session.stream, session.playSessionId, session.playId, session.positionBaseSeconds, api]);
 
+  // onProgress fires on every timeupdate (~4Hz) so positionRef stays LIVE — renegotiation
+  // (audio/subtitle switch, ABR) reads it via getPosition and must resume at the true
+  // current position, not a stale 10s-old one. The server progress report stays throttled
+  // to ~10s, but a pause/resume state change is reported immediately.
+  const lastReportRef = useRef(0);
+  const lastPausedRef = useRef(true);
   const onProgress = useCallback((seconds: number, paused: boolean) => {
     positionRef.current = seconds;
     if (!session.playSessionId) return;
+    const pausedChanged = paused !== lastPausedRef.current;
+    lastPausedRef.current = paused;
+    const now = Date.now();
+    if (!pausedChanged && now - lastReportRef.current < 10_000) return;
+    lastReportRef.current = now;
     const positionTicks = Math.round((baseRef.current + seconds) * 1e7);
     void reportProgress(api, { itemId: session.playId, playSessionId: session.playSessionId, positionTicks, isPaused: paused }).catch(() => {});
   }, [api, session.playId, session.playSessionId]);

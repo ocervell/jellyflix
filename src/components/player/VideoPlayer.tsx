@@ -30,8 +30,11 @@ export default function VideoPlayer({
     const tick = () => onProgressRef.current(video.currentTime, video.paused);
     const id = window.setInterval(tick, 10_000);
     const report = () => onProgressRef.current(video.currentTime, video.paused);
+    // timeupdate (~4Hz) keeps the parent's live position current for renegotiation;
+    // Watch throttles the actual server report. pause/play/seeked report immediately.
+    video.addEventListener('timeupdate', report);
     video.addEventListener('pause', report); video.addEventListener('play', report); video.addEventListener('seeked', report);
-    return () => { window.clearInterval(id); video.removeEventListener('pause', report); video.removeEventListener('play', report); video.removeEventListener('seeked', report); };
+    return () => { window.clearInterval(id); video.removeEventListener('timeupdate', report); video.removeEventListener('pause', report); video.removeEventListener('play', report); video.removeEventListener('seeked', report); };
   }, [videoRef]);
 
   useEffect(() => {
