@@ -55,10 +55,16 @@ export function usePlaybackSession(rawItemId: string, getPosition: () => number)
     playRef.current = { playId, playSessionId };
     msIdRef.current = ms.Id ?? undefined;
     setMediaSource(ms);
-    setStream({ ...resolved, startSeconds: resolved.isHls ? 0 : position });
-    // HLS: the transcode timeline restarts at 0, so currentTime is relative to `position`.
-    // Direct/progressive: currentTime is absolute, so there is no offset to add.
-    setPositionBaseSeconds(resolved.isHls ? position : 0);
+    setStream({ ...resolved, startSeconds: position });
+    // Absolute timeline for both HLS and direct: the client seeks to `position`
+    // (hls.js `startPosition` for transcodes; a loadedmetadata seek for direct), so
+    // currentTime is absolute and there is no offset to add. Matches jellyfin-web, which
+    // keeps transcodingOffsetTicks=0 for HLS and seeks the element to the resume point.
+    // (Jellyfin's HLS manifest is absolute/full-duration; playing from 0 without a seek
+    // was restarting transcoded episodes from the beginning.)
+    // ponytail: positionBaseSeconds is now always 0 — kept as a field only to avoid
+    // churning Watch/ABR/VideoPlayer; drop it in a later cleanup if nothing needs it.
+    setPositionBaseSeconds(0);
   }, [serverUrl, accessToken]);
 
   // initial negotiate, once per rawItemId, after item load

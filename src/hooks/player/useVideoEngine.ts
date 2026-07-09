@@ -32,7 +32,9 @@ export function useVideoEngine(opts: { src: string; isHls: boolean; startSeconds
     if (!video) return;
     let hls: Hls | undefined;
     if (isHls && Hls.isSupported()) {
-      hls = new Hls();
+      // startPosition seeks the transcode to the resume point. Jellyfin's HLS manifest is
+      // absolute (full duration), so without this a resumed episode plays from the start.
+      hls = new Hls({ startPosition: startSeconds > 0 ? startSeconds : -1 });
       hls.loadSource(src);
       hls.attachMedia(video);
       hls.on(Hls.Events.ERROR, (_e, data) => {

@@ -135,15 +135,16 @@ test('renegotiate with maxBitrate persists as currentBitrate (apply no longer cl
   expect(result.current.currentBitrate).toBe(4_000_000);
 });
 
-test('HLS positionBaseSeconds is the negotiated absolute position, and renegotiation sends absolute startTicks', async () => {
-  // Resume at 300s absolute; the HLS transcode timeline itself starts at 0, so
-  // positionBaseSeconds must record the 300s offset.
+test('HLS resume seeks to the absolute position (startSeconds), positionBaseSeconds stays 0, and renegotiation sends absolute startTicks', async () => {
+  // Resume at 300s absolute. Jellyfin's HLS manifest is absolute, so the client seeks
+  // there (hls.js startPosition): stream.startSeconds carries 300 and there is no offset.
   resolvePlayableItem.mockResolvedValueOnce({ id: 'ep1', startTicks: 300 * 10_000_000 });
   fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps' });
-  // getPosition simulates Watch.tsx's baseRef.current + positionRef.current: base 300 + 5s of relative playback = 305 absolute.
+  // getPosition simulates Watch.tsx's baseRef(0) + positionRef: absolute currentTime 305.
   const { result } = renderHook(() => usePlaybackSession('ep1', () => 305));
   await waitFor(() => expect(result.current.stream).not.toBeNull());
-  expect(result.current.positionBaseSeconds).toBe(300);
+  expect(result.current.stream?.startSeconds).toBe(300);
+  expect(result.current.positionBaseSeconds).toBe(0);
 
   fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps-reneg' });
   await act(async () => { await result.current.setAudioTrack(2); });
@@ -152,12 +153,13 @@ test('HLS positionBaseSeconds is the negotiated absolute position, and renegotia
   expect(lastCall[3]).toMatchObject({ audioStreamIndex: 2, startTicks: Math.round(305 * 10_000_000) });
 });
 
-test('direct/progressive stream has positionBaseSeconds 0', async () => {
+test('direct/progressive stream resumes via startSeconds with positionBaseSeconds 0', async () => {
   resolveStreamUrl.mockReturnValueOnce({ url: 'http://x/stream.mp4', isHls: false });
   resolvePlayableItem.mockResolvedValueOnce({ id: 'ep1', startTicks: 300 * 10_000_000 });
   fetchPlaybackInfo.mockResolvedValue({ mediaSource: MS, playSessionId: 'ps-direct' });
   const { result } = renderHook(() => usePlaybackSession('ep1', () => 0));
   await waitFor(() => expect(result.current.stream).not.toBeNull());
+  expect(result.current.stream?.startSeconds).toBe(300);
   expect(result.current.positionBaseSeconds).toBe(0);
 });
 
