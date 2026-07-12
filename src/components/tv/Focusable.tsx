@@ -16,9 +16,11 @@ export function Focusable({
   });
   const cls = `${className ?? ''} ${focused ? styles.focused : ''}`.trim();
   const handleClick = (e: React.MouseEvent) => {
-    // Don't double-fire when a nested button/link/input handled the click itself
+    // Don't double-fire when a nested button/link/input/Focusable handled the click itself
     // (it bubbles up to this wrapper). Only activate on clicks in our own content.
-    if ((e.target as HTMLElement).closest('button, a, input, select, textarea')) return;
+    // `closest` stops at the nearest match, so a nested Focusable (role="button") is found
+    // before this element's own role="button", correctly excluding only inner clicks.
+    if ((e.target as HTMLElement).closest('button, a, input, select, textarea, [role="button"]') !== e.currentTarget) return;
     onEnterPress?.();
   };
   const props = { ref, className: cls, 'aria-label': ariaLabel, onClick: handleClick, role: 'button', tabIndex: -1 };

@@ -7,6 +7,8 @@ import { getCardImageUrl } from '../../lib/jellyfin/images';
 import { formatRuntime, playedPercent } from '../../lib/format';
 import { Img } from '../common/Img';
 import { ProgressBar } from '../common/ProgressBar';
+import { FocusSection } from '../tv/FocusSection';
+import { Focusable } from '../tv/Focusable';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import styles from './EpisodeList.module.css';
 
@@ -26,21 +28,20 @@ export default function EpisodeList({ seriesId, onPlay, onSelect }: {
           {seasons.map((s) => <option key={s.Id} value={s.Id}>{s.Name}</option>)}
         </select>
       )}
-      <ul className={styles.list}>
+      <FocusSection as="ul" className={styles.list} focusKey="episode-list">
         {episodes.map((ep) => {
           const watched = !!ep.UserData?.Played;
           return (
             <li key={ep.Id}>
-              <div className={styles.ep} role="button" tabIndex={0}
-                onClick={() => ep.Id && onSelect(ep.Id)}
-                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && ep.Id) { e.preventDefault(); onSelect(ep.Id); } }}>
+              <Focusable className={styles.ep} ariaLabel={ep.Name ?? ''}
+                onEnterPress={() => ep.Id && onSelect(ep.Id)}>
                 <span className={styles.idx}>{ep.IndexNumber}</span>
                 <span className={`${styles.thumb} ${watched ? styles.thumbWatched : ''}`}>
                   <Img src={getCardImageUrl(api, ep, { width: 200 })} alt={ep.Name ?? ''} />
-                  <button className={styles.playBtn} aria-label={`Play ${ep.Name ?? ''}`}
-                    onClick={(e) => { e.stopPropagation(); onPlay(ep); }}>
+                  <Focusable className={styles.playBtn} ariaLabel={`Play ${ep.Name ?? ''}`}
+                    onEnterPress={() => onPlay(ep)}>
                     <Play size={18} fill="currentColor" strokeWidth={0} />
-                  </button>
+                  </Focusable>
                   {watched
                     ? <span className={styles.check} aria-label="Watched"><CircleCheck size={22} strokeWidth={2.5} /></span>
                     : <ProgressBar percent={playedPercent(ep)} />}
@@ -49,11 +50,11 @@ export default function EpisodeList({ seriesId, onPlay, onSelect }: {
                   <span className={styles.epTitle}>{ep.Name} <span className={styles.rt}>{formatRuntime(ep.RunTimeTicks)}</span></span>
                   <span className={styles.overview}>{ep.Overview}</span>
                 </span>
-              </div>
+              </Focusable>
             </li>
           );
         })}
-      </ul>
+      </FocusSection>
     </div>
   );
 }
