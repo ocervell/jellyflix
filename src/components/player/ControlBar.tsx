@@ -13,16 +13,21 @@ function VolumeIcon({ muted, volume }: { muted: boolean; volume: number }) {
 }
 
 export default function ControlBar({
-  engine, title, onBack, onScrub, onHover, menuOpen, extras, bubbleSlot, buffering,
+  engine, title, onBack, onScrub, onHover, menuOpen, extras, bubbleSlot, loading, resumeSeconds, fallbackDuration,
 }: {
   engine: VideoEngine; title: string; onBack: () => void;
   onScrub: (s: number) => void; onHover: (info: { seconds: number; x: number } | null) => void;
-  menuOpen: boolean; extras: React.ReactNode; bubbleSlot?: React.ReactNode; buffering?: boolean;
+  menuOpen: boolean; extras: React.ReactNode; bubbleSlot?: React.ReactNode;
+  loading?: boolean; resumeSeconds?: number; fallbackDuration?: number;
 }) {
   const { state } = engine;
-  // Keep the controls (and the buffering spinner) visible while stalled — auto-hide only
-  // during smooth playback, not while the user is waiting on a reconnect.
-  const { visible, ping } = useAutoHide(!state.paused && !menuOpen && !buffering);
+  // Keep the controls (and the loading spinner) visible while loading/stalled — auto-hide
+  // only during smooth playback, not while the user is waiting for the stream.
+  const { visible, ping } = useAutoHide(!state.paused && !menuOpen && !loading);
+  // Before the video has seeked to the resume point (currentTime still 0), show the resume
+  // position and the item's known runtime so the scrubber starts AT the resume spot, not 0.
+  const displayTime = state.currentTime > 0 ? state.currentTime : (resumeSeconds ?? 0);
+  const displayDuration = state.duration > 0 ? state.duration : (fallbackDuration ?? 0);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -42,11 +47,10 @@ export default function ControlBar({
     return () => window.removeEventListener('keydown', onKey);
   }, [engine, state.volume, onBack, ping]);
 
-  const remaining = Math.max(0, state.duration - state.currentTime);
-  // While the stream is still loading (metadata not in yet) or buffering/reloading, show
-  // the Pause icon: the player autoplays, so a Play icon makes users think they must press
-  // it and click twice, flickering play/pause. Pause signals "it's already going".
-  const playing = !state.paused || state.duration === 0 || state.waiting || !!buffering;
+  const remaining = Math.max(0, displayDuration - displayTime);
+  // Lock the button to Pause while loading/buffering (the player autoplays, so a Play icon
+  // makes users press it and flicker play/pause). Pause signals "it's already going".
+  const playing = !!loading || !state.paused || state.duration === 0 || state.waiting;
   return (
     <div className={visible ? styles.wrap : `${styles.wrap} ${styles.hidden}`} onPointerMove={ping}>
       <div className={styles.top}>
@@ -54,7 +58,7 @@ export default function ControlBar({
         <span className={styles.title}>{title}</span>
       </div>
       <div className={styles.center}>
-        {buffering && <div className={styles.spinner} aria-label="Buffering" role="status" />}
+        {loading && <div className={styles.spinner} aria-label="Loading" role="status" />}
         <button className={styles.bigPlay} onClick={engine.togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
           {playing ? <Pause size={40} fill="currentColor" strokeWidth={0} /> : <Play size={40} fill="currentColor" strokeWidth={0} />}
         </button>
@@ -62,7 +66,7 @@ export default function ControlBar({
       <div className={styles.bottom}>
         <div className={styles.scrubRow}>
           {bubbleSlot}
-          <Scrubber currentTime={state.currentTime} duration={state.duration} bufferedEnd={state.bufferedEnd} onScrub={onScrub} onHover={onHover} />
+          <Scrubber currentTime={displayTime} duration={displayDuration} bufferedEnd={state.bufferedEnd} onScrub={onScrub} onHover={onHover} />
         </div>
         <div className={styles.buttons}>
           <button onClick={engine.togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
@@ -81,7 +85,7 @@ export default function ControlBar({
             <input className={styles.volume} type="range" min={0} max={1} step={0.05} value={state.muted ? 0 : state.volume}
               onChange={(e) => engine.setVolume(Number(e.target.value))} aria-label="Volume" />
           </div>
-          <span className={styles.time}>{formatTime(state.currentTime)} / -{formatTime(remaining)}</span>
+          <span className={styles.time}>{formatTime(displayTime)} / -{formatTime(remaining)}</span>
           <span className={styles.spacer} />
           {extras}
           <button onClick={engine.requestFullscreen} aria-label="Fullscreen"><Maximize size={26} /></button>

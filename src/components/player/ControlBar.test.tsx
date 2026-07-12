@@ -29,12 +29,20 @@ test('paused on a ready video (duration > 0) shows Play', () => {
   expect(screen.getAllByRole('button', { name: 'Play' }).length).toBeGreaterThan(0);
 });
 
-test('buffering shows a spinner and forces the Pause icon even while paused', () => {
+test('loading shows a spinner and forces the Pause icon even while paused', () => {
   const engine = makeEngine({ state: { paused: true, currentTime: 30, duration: 100, bufferedEnd: 30, volume: 1, muted: false, waiting: false, stallCount: 0, readyState: 1 } });
-  render(<ControlBar engine={engine} title="X" onBack={() => {}} onScrub={() => {}} onHover={() => {}} menuOpen={false} extras={null} buffering />);
-  expect(screen.getByRole('status', { name: /buffering/i })).toBeInTheDocument();
+  render(<ControlBar engine={engine} title="X" onBack={() => {}} onScrub={() => {}} onHover={() => {}} menuOpen={false} extras={null} loading />);
+  expect(screen.getByRole('status', { name: /loading/i })).toBeInTheDocument();
   expect(screen.getAllByRole('button', { name: 'Pause' }).length).toBeGreaterThan(0);
   expect(screen.queryByRole('button', { name: 'Play' })).toBeNull();
+});
+
+test('scrubber shows the resume position before the video has seeked (currentTime 0)', () => {
+  const engine = makeEngine({ state: { paused: true, currentTime: 0, duration: 0, bufferedEnd: 0, volume: 1, muted: false, waiting: false, stallCount: 0, readyState: 0 } });
+  render(<ControlBar engine={engine} title="X" onBack={() => {}} onScrub={() => {}} onHover={() => {}} menuOpen={false} extras={null} loading resumeSeconds={600} fallbackDuration={3600} />);
+  const slider = screen.getByRole('slider', { name: 'Seek' });
+  expect(slider).toHaveAttribute('aria-valuenow', '600');
+  expect(slider).toHaveAttribute('aria-valuemax', '3600');
 });
 
 test('volume slider stays in the DOM (hover-reveal) and mute/fullscreen are reachable', () => {

@@ -10,9 +10,9 @@ import type { Trickplay } from '../../lib/jellyfin/trickplay';
 import styles from './VideoPlayer.module.css';
 
 export default function VideoPlayer({
-  session, poster, title, onProgress, onBack, onError, onEngineState, trickplay,
+  session, poster, title, durationSeconds, onProgress, onBack, onError, onEngineState, trickplay,
 }: {
-  session: PlaybackSession; poster: string | null; title: string;
+  session: PlaybackSession; poster: string | null; title: string; durationSeconds?: number;
   onProgress: (seconds: number, paused: boolean) => void; onBack: () => void;
   onError?: (msg: string) => void; onEngineState?: (s: EngineState) => void;
   trickplay?: Trickplay | null;
@@ -62,7 +62,9 @@ export default function VideoPlayer({
     video.addEventListener('waiting', onWaiting);
     return () => { video.removeEventListener('playing', onPlaying); video.removeEventListener('waiting', onWaiting); };
   }, [videoRef]);
-  const buffering = started && engine.state.readyState < 3;
+  // readyState < 3 = can't play forward yet (initial resume load OR a mid-playback stall).
+  // Drives the spinner + a locked Pause button + the resume-position scrubber.
+  const loading = engine.state.readyState < 3;
 
   // The selected external subtitle (if any) is drawn by SubtitleOverlay below from
   // fetched cue data. Encode subs are burned into the video, so they need no overlay.
@@ -81,11 +83,12 @@ export default function VideoPlayer({
   return (
     <div className={styles.wrap}>
       <video ref={videoRef} className={styles.video} poster={started ? undefined : (poster ?? undefined)} autoPlay />
-      {buffering && frameHold && <img className={styles.frameHold} src={frameHold} alt="" />}
+      {loading && frameHold && <img className={styles.frameHold} src={frameHold} alt="" />}
       <SubtitleOverlay track={selectedSub} currentTime={engine.state.currentTime}
         serverUrl={appSession.serverUrl} token={appSession.accessToken} />
       <ControlBar
-        engine={engine} title={title} onBack={onBack} onScrub={onScrub} onHover={setHover} menuOpen={menuOpen} extras={extras} buffering={buffering}
+        engine={engine} title={title} onBack={onBack} onScrub={onScrub} onHover={setHover} menuOpen={menuOpen} extras={extras}
+        loading={loading} resumeSeconds={stream.startSeconds} fallbackDuration={durationSeconds}
         bubbleSlot={<TrickplayBubble trickplay={trickplay ?? null} serverUrl={appSession.serverUrl} token={appSession.accessToken} hover={hover} />}
       />
     </div>

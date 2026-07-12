@@ -116,6 +116,7 @@ export default function Watch() {
       session={session}
       poster={item ? getBackdropUrl(api, item, { width: 1280 }) : null}
       title={item?.Name ?? ''}
+      durationSeconds={item?.RunTimeTicks ? item.RunTimeTicks / 10_000_000 : 0}
       onProgress={onProgress}
       onBack={onBack}
       onError={setPlayerError}
