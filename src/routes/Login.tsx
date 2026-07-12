@@ -2,18 +2,25 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useApi';
 import { Focusable } from '../components/tv/Focusable';
+import { clearServer, getSavedServer, isTvBuild } from '../lib/tv/server';
+import ServerScreen from './ServerScreen';
 import styles from './Login.module.css';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const tvBuild = isTvBuild();
+  // Web build always has a server (/jf). TV build needs the user to pick one first.
+  const [server, setServer] = useState<string | null>(() => (tvBuild ? getSavedServer() : '/jf'));
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => { if (server) inputRef.current?.focus(); }, [server]);
+
+  if (!server) return <ServerScreen onConnected={setServer} />;
 
   async function doLogin() {
     if (busy) return;
@@ -51,6 +58,11 @@ export default function Login() {
         <Focusable ariaLabel="Sign In" className={`${styles.submit} ${busy ? styles.busy : ''}`} onEnterPress={() => void doLogin()}>
           {busy ? <><span className={styles.spinner} aria-hidden="true" />Signing in…</> : 'Sign In'}
         </Focusable>
+        {tvBuild && (
+          <Focusable ariaLabel="Change server" className={styles.changeServer} onEnterPress={() => { clearServer(); setServer(null); }}>
+            Change server
+          </Focusable>
+        )}
       </form>
     </div>
   );

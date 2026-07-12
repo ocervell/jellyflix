@@ -12,3 +12,5 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
 .error { color: #f6c343; font-size: 14px; }
+.changeServer { text-align: center; color: var(--nf-grey); font-size: 13px; cursor: pointer; padding: 4px; }
+.changeServer:hover { color: var(--nf-white); }

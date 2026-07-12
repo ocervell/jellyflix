@@ -1,8 +1,17 @@
 # Android TV / Fire TV build
 
-The APK is a thin Capacitor WebView that loads the deployed Jellyflix URL
-(set in `capacitor.config.ts` → `server.url`). D-pad navigation is handled by
-the web app's spatial navigation. Build on a machine with Android Studio + SDK.
+The APK bundles the web app (`webDir: 'dist'`) and runs it in a Capacitor
+WebView. On first run the app shows a **server screen** — the user enters their
+Jellyfin URL (e.g. `http://192.168.1.10:8096`), which is validated against
+`/System/Info/Public` and saved; a "Change server" link on the login screen
+resets it. D-pad navigation is handled by the web app's spatial navigation.
+Build on a machine with Android Studio + SDK.
+
+`capacitor.config.ts` sets `server.androidScheme: 'http'` (so plain-http LAN
+Jellyfin isn't blocked as mixed content) and enables the `CapacitorHttp` plugin
+(so the app's fetch/XHR go through native HTTP, bypassing browser CORS on the
+direct Jellyfin calls). There is **no** remote `server.url` — the assets are
+bundled and the server is chosen in-app.
 
 ## One-time
     npm i -D @capacitor/cli
@@ -30,7 +39,10 @@ In `android/app/src/main/AndroidManifest.xml`:
 ## Notes
 - The remote Back button is delivered to the web app; the global Back handler
   (src/lib/tv/back.tsx) resolves it (menu → modal → player → history → exit).
-- To update the app, just redeploy the web app — the wrapper reloads server.url.
+- To update the app, rebuild `dist` (`npm run build`), `npx cap sync`, and
+  reinstall the APK — the web assets are bundled, not loaded from a URL.
+- The saved server lives in the WebView's localStorage (`jellyflix.server`);
+  "Change server" on the login screen clears it.
 
 ## Hardware Back button bridge
 On Android, the hardware/remote Back button fires Capacitor's `App`
