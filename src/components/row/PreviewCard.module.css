@@ -12,8 +12,11 @@
 .episode { margin-top: 2px; font-size: 12px; color: var(--nf-grey);
   display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 
+.card:focus-within { transform: scale(1.4); z-index: 20; }
+.card:focus-within .panel { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .card { transition: transform .3s var(--nf-ease); transition-delay: .4s; }
-  .card:hover { transform: scale(1.4); z-index: 20; transition-delay: 0s; }
+  .card:hover, .card:focus-within { transform: scale(1.4); z-index: 20; transition-delay: 0s; }
   .card:hover .panel { opacity: 1; pointer-events: auto; transform: translateY(0); }
 }

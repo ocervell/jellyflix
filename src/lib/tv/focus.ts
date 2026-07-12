@@ -5,5 +5,7 @@ let started = false;
 export function initFocus(): void {
   if (started) return;
   started = true;
-  init({ debug: false, visualDebug: false });
+  // shouldFocusDOMNode: real DOM focus follows virtual focus, so `:focus-within` CSS
+  // (card hover-expand mirrors) works and the browser auto-scrolls the focused node into view.
+  init({ debug: false, visualDebug: false, shouldFocusDOMNode: true });
 }
