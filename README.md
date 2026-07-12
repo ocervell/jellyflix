@@ -17,6 +17,7 @@
   <a href="#features">Features</a> •
   <a href="#run-with-docker">Run with Docker</a> •
   <a href="#development">Development</a> •
+  <a href="#mobile--tv-app">Mobile / TV app</a> •
   <a href="#how-it-works">How it works</a>
 </p>
 
@@ -93,6 +94,33 @@ npm run dev     # http://localhost:5173 — proxies /jf → your server (no CORS
 npm test          # unit + component tests (Vitest)
 npm run build     # typecheck + production build
 ```
+
+## Mobile / TV app
+
+The web UI is fully **D-pad navigable** (arrow keys / remote), so it runs as-is in a TV browser, and ships as an optional **Android TV / Fire TV** APK — a thin [Capacitor](https://capacitorjs.com) WebView that loads your deployed Jellyflix URL. See [`docs/tv-build.md`](docs/tv-build.md) for the full manifest edits and notes.
+
+**Fastest test — no build:** open your Jellyflix URL in a D-pad browser on the TV (e.g. *TV Bro* or *Puffin TV*) and drive it with the remote.
+
+**Build the leanback APK** (needs Android Studio + JDK 17):
+
+```sh
+# point the wrapper at your reachable Jellyfin front-end (LAN IP:port or DDNS)
+# edit capacitor.config.ts → server.url
+npm i -D @capacitor/cli && npm i @capacitor/core @capacitor/android @capacitor/app
+npx cap add android
+# apply the LEANBACK_LAUNCHER + uses-feature manifest edits from docs/tv-build.md
+npx cap sync
+cd android && ./gradlew assembleDebug     # → app/build/outputs/apk/debug/app-debug.apk
+```
+
+**Test on the device** — enable developer mode (Settings → System → About → tap *Android TV OS build* 7×), turn on ADB debugging, then:
+
+```sh
+adb connect <TV-IP>:5555
+adb install android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+The app lands on the TV home (leanback launcher); redeploying the web app updates it automatically. Wire the remote **Back** button once at init (`@capacitor/app` bridge in [`docs/tv-build.md`](docs/tv-build.md)).
 
 ## How it works
 
