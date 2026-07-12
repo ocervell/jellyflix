@@ -68,7 +68,7 @@ export default function DetailModal({
               </div>
               {item.Overview && <p className={styles.overview}>{item.Overview}</p>}
               {item.Genres?.length ? <p className={styles.genres}>Genres: {item.Genres.join(', ')}</p> : null}
-              {item.Type === 'Series' && item.Id && <EpisodeList seriesId={item.Id} onPlay={onPlay} />}
+              {item.Type === 'Series' && item.Id && <EpisodeList seriesId={item.Id} onPlay={onPlay} onSelect={setId} />}
             </div>
           </>
         )}
