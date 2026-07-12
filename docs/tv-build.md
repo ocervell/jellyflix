@@ -31,3 +31,17 @@ In `android/app/src/main/AndroidManifest.xml`:
 - The remote Back button is delivered to the web app; the global Back handler
   (src/lib/tv/back.tsx) resolves it (menu → modal → player → history → exit).
 - To update the app, just redeploy the web app — the wrapper reloads server.url.
+
+## Hardware Back button bridge
+On Android, the hardware/remote Back button fires Capacitor's `App`
+`backButton` event, NOT a DOM `keydown`. The web back-stack
+(`src/lib/tv/back.tsx`) only listens for `keydown` (Escape), so without a
+bridge the hardware Back button does nothing in the WebView. Bridge it once
+at app init:
+
+    import { App } from '@capacitor/app';
+    App.addListener('backButton', () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    });
+
+Requires `npm i @capacitor/app`.

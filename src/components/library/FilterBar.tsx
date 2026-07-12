@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import Dropdown from './Dropdown';
 import { FocusSection } from '../tv/FocusSection';
 import { Focusable } from '../tv/Focusable';
@@ -16,12 +17,15 @@ export default function FilterBar({
 }) {
   const toggle = <T,>(list: T[], v: T): T[] => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const isDefault = JSON.stringify(query) === JSON.stringify(DEFAULT_QUERY);
+  const sortSelectRef = useRef<HTMLSelectElement>(null);
   return (
     <FocusSection className={styles.bar}>
       <label className={styles.sort}>Sort by
-        <select aria-label="Sort by" value={query.sort} onChange={(e) => onChange({ ...query, sort: e.target.value as SortField })}>
-          {(Object.keys(SORT_LABELS) as SortField[]).map((s) => <option key={s} value={s}>{SORT_LABELS[s]}</option>)}
-        </select>
+        <Focusable ariaLabel="Sort by" onEnterPress={() => sortSelectRef.current?.focus()}>
+          <select ref={sortSelectRef} aria-label="Sort by" value={query.sort} onChange={(e) => onChange({ ...query, sort: e.target.value as SortField })}>
+            {(Object.keys(SORT_LABELS) as SortField[]).map((s) => <option key={s} value={s}>{SORT_LABELS[s]}</option>)}
+          </select>
+        </Focusable>
       </label>
       <Focusable className={styles.order} ariaLabel="Toggle sort order"
         onEnterPress={() => onChange({ ...query, order: query.order === 'asc' ? 'desc' : 'asc' })}>

@@ -29,5 +29,5 @@ test('non-empty query renders results heading + sort control', () => {
   useSearchItems.mockReturnValue({ items: [{ Id: 'a', Name: 'A' }], total: 1, fetchNextPage: () => {}, hasNextPage: false, isLoading: false, isError: false });
   renderAt('/search?q=matrix');
   expect(screen.getByText(/results for/i)).toBeInTheDocument();
-  expect(screen.getByLabelText(/sort by/i)).toBeInTheDocument();
+  expect(screen.getByLabelText(/sort by/i, { selector: 'select' })).toBeInTheDocument();
 });

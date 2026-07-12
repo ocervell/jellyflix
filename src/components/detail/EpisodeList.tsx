@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CircleCheck, Play } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { useSeasons } from '../../hooks/api/useSeasons';
@@ -20,13 +20,16 @@ export default function EpisodeList({ seriesId, onPlay, onSelect }: {
   const [seasonId, setSeasonId] = useState<string | undefined>();
   useEffect(() => { if (!seasonId && seasons[0]?.Id) setSeasonId(seasons[0].Id); }, [seasons, seasonId]);
   const { data: episodes = [] } = useEpisodes(seriesId, seasonId);
+  const seasonSelectRef = useRef<HTMLSelectElement>(null);
 
   return (
     <div className={styles.wrap}>
       {seasons.length > 1 && (
-        <select className={styles.season} value={seasonId} onChange={(e) => setSeasonId(e.target.value)}>
-          {seasons.map((s) => <option key={s.Id} value={s.Id}>{s.Name}</option>)}
-        </select>
+        <Focusable ariaLabel="Season" onEnterPress={() => seasonSelectRef.current?.focus()}>
+          <select ref={seasonSelectRef} className={styles.season} value={seasonId} onChange={(e) => setSeasonId(e.target.value)}>
+            {seasons.map((s) => <option key={s.Id} value={s.Id}>{s.Name}</option>)}
+          </select>
+        </Focusable>
       )}
       <FocusSection as="ul" className={styles.list} focusKey="episode-list">
         {episodes.map((ep) => {

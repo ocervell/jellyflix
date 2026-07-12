@@ -11,7 +11,7 @@ test('changing sort and toggling a genre call onChange with updated query', asyn
   const onChange = vi.fn();
   render(<FilterBar query={DEFAULT_QUERY} genres={['Action', 'Drame']} decades={[2010, 2000]} total={974} onChange={onChange} />);
   expect(screen.getByText(/974/)).toBeInTheDocument();
-  await userEvent.selectOptions(screen.getByLabelText(/sort by/i), 'year');
+  await userEvent.selectOptions(screen.getByLabelText(/sort by/i, { selector: 'select' }), 'year');
   expect(onChange).toHaveBeenCalledWith({ ...DEFAULT_QUERY, sort: 'year' });
   // open Genre dropdown and toggle Action
   await userEvent.click(screen.getByRole('button', { name: /genre/i }));
@@ -41,6 +41,6 @@ test('facets=false hides Genre and Decade but keeps sort + status', () => {
   render(<FilterBar query={DEFAULT_QUERY} genres={genres} decades={decades} total={3} facets={false} onChange={vi.fn()} />);
   expect(screen.queryByRole('button', { name: /genre/i })).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /decade/i })).not.toBeInTheDocument();
-  expect(screen.getByLabelText(/sort by/i)).toBeInTheDocument();
+  expect(screen.getByLabelText(/sort by/i, { selector: 'select' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /^unplayed$/i })).toBeInTheDocument();
 });

@@ -23,12 +23,6 @@ export default function DetailModal({
   useEffect(() => { setId(itemId); }, [itemId]);
   const { data: item, isLoading } = useItem(id);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
   useTvBack(() => { onClose(); return true; }, true);
   useEffect(() => { if (item) setFocus('detail-play'); }, [item]);
 
