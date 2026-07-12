@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Play } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Play, Tv } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { useItem } from '../../hooks/api/useItem';
 import { getBackdropUrl, getLogoUrl } from '../../lib/jellyfin/images';
@@ -13,7 +13,11 @@ export default function DetailModal({
   itemId, onClose, onPlay,
 }: { itemId: string; onClose: () => void; onPlay: (i: BaseItemDto) => void }) {
   const { api } = useApi();
-  const { data: item, isLoading } = useItem(itemId);
+  // The modal can navigate from an episode to its series in place, so track which
+  // item is shown independently of the prop. Reset when opened on a different item.
+  const [id, setId] = useState(itemId);
+  useEffect(() => { setId(itemId); }, [itemId]);
+  const { data: item, isLoading } = useItem(id);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -47,6 +51,11 @@ export default function DetailModal({
                       <span className={styles.playProgress}><span style={{ width: `${playedPercent(item)}%` }} /></span>
                     )}
                   </button>
+                  {item.Type === 'Episode' && item.SeriesId && (
+                    <button className={styles.series} onClick={() => setId(item.SeriesId!)}>
+                      <Tv size={18} /> {item.SeriesName ? `Go to ${item.SeriesName}` : 'Go to series'}
+                    </button>
+                  )}
                   <ItemActions item={item} size="md" />
                 </div>
               </div>
