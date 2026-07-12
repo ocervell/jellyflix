@@ -1,5 +1,6 @@
 import PosterCard from './PosterCard';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
+import { FocusSection } from '../tv/FocusSection';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import styles from './PosterGrid.module.css';
 
@@ -18,11 +19,11 @@ export default function PosterGrid({
   }
   return (
     <>
-      <ul className={styles.grid}>
+      <FocusSection as="ul" className={styles.grid} focusKey="poster-grid">
         {items.map((item) => (
           <li key={item.Id}><PosterCard item={item} onOpen={onOpen} /></li>
         ))}
-      </ul>
+      </FocusSection>
       <div ref={sentinelRef} className={styles.sentinel} aria-hidden />
       {hasMore && <p className={styles.loadingMore}>Loading more…</p>}
     </>

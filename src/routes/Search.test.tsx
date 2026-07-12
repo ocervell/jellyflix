@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { expect, test, vi } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
+import { initFocus } from '../lib/tv/focus';
 
 vi.mock('../components/nav/TopNav', () => ({ default: () => <div>nav</div> }));
 vi.mock('../components/detail/DetailModal', () => ({ default: () => <div>modal</div> }));
@@ -10,6 +11,8 @@ const useSearchItems = vi.fn();
 vi.mock('../hooks/api/useSearchItems', () => ({ useSearchItems: (q: unknown) => useSearchItems(q) }));
 
 import Search from './Search';
+
+beforeAll(() => initFocus());
 
 function renderAt(path: string) {
   return render(<MemoryRouter initialEntries={[path]}><Search /></MemoryRouter>);
