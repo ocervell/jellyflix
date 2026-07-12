@@ -35,7 +35,9 @@ export default function Login() {
         <label>Password
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
         </label>
-        <button type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign In'}</button>
+        <button type="submit" disabled={busy}>
+          {busy ? <><span className={styles.spinner} aria-hidden="true" />Signing in…</> : 'Sign In'}
+        </button>
       </form>
     </div>
   );
