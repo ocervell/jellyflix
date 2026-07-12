@@ -20,6 +20,7 @@ export function useHotNow() {
         sortBy: [ItemSortBy.PremiereDate],
         sortOrder: [SortOrder.Descending],
         minCommunityRating: 7,
+        isPlayed: false, // "Hot right now" is for discovery — hide already-watched titles
         maxPremiereDate: MAX_PREMIERE_DATE,
         limit: 20,
         fields: [ItemFields.PrimaryImageAspectRatio],

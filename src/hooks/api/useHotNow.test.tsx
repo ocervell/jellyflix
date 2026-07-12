@@ -19,6 +19,7 @@ test('requests newest high-rated movies + series', async () => {
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
   const arg = getItems.mock.calls[0][0];
   expect(arg.minCommunityRating).toBe(7);
+  expect(arg.isPlayed).toBe(false);
   expect(arg.sortBy).toEqual([ItemSortBy.PremiereDate]);
   expect(arg.sortOrder).toEqual([SortOrder.Descending]);
   expect(arg.includeItemTypes).toEqual([BaseItemKind.Movie, BaseItemKind.Series]);
