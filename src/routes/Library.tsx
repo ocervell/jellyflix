@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import TopNav from '../components/nav/TopNav';
 import FilterBar from '../components/library/FilterBar';
@@ -32,6 +33,14 @@ export default function Library() {
   const onChange = useCallback((q: LibraryQuery) => { setSearchParams(toParams(q)); window.scrollTo({ top: 0 }); }, [setSearchParams]);
   const onOpen = useCallback((i: BaseItemDto) => setDetail(i), []);
   const onPlay = useCallback((i: BaseItemDto) => navigate(`/watch/${i.Id}`), [navigate]);
+
+  const focusedOnce = useRef(false);
+  useEffect(() => {
+    if (!isLoading && !focusedOnce.current) {
+      focusedOnce.current = true;
+      setFocus('poster-grid');
+    }
+  }, [isLoading]);
 
   return (
     <div className={styles.page}>

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useApi';
+import { Focusable } from '../components/tv/Focusable';
 import styles from './Login.module.css';
 
 export default function Login() {
@@ -10,9 +11,12 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  async function doLogin() {
+    if (busy) return;
     setBusy(true); setError('');
     try {
       await login(username, password);
@@ -24,20 +28,25 @@ export default function Login() {
     }
   }
 
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    void doLogin();
+  }
+
   return (
     <div className={styles.wrap}>
       <form className={styles.card} onSubmit={onSubmit}>
         <h1 className={styles.brand}>JELLYFLIX</h1>
         {error && <p className={styles.error}>{error}</p>}
         <label>Username
-          <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
+          <input ref={inputRef} value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
         </label>
         <label>Password
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
         </label>
-        <button type="submit" disabled={busy}>
+        <Focusable ariaLabel="Sign In" className={`${styles.submit} ${busy ? styles.busy : ''}`} onEnterPress={() => void doLogin()}>
           {busy ? <><span className={styles.spinner} aria-hidden="true" />Signing in…</> : 'Sign In'}
-        </button>
+        </Focusable>
       </form>
     </div>
   );

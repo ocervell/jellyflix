@@ -1,7 +1,8 @@
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { expect, test, vi, beforeEach, afterEach } from 'vitest';
+import { expect, test, vi, beforeAll, beforeEach, afterEach } from 'vitest';
+import { initFocus } from '../../lib/tv/focus';
 
 const navigate = vi.fn();
 vi.mock('react-router-dom', async (orig) => ({
@@ -11,6 +12,7 @@ vi.mock('react-router-dom', async (orig) => ({
 
 import SearchBox from './SearchBox';
 
+beforeAll(() => initFocus());
 beforeEach(() => { navigate.mockReset(); vi.useFakeTimers({ shouldAdvanceTime: true }); });
 afterEach(() => { vi.useRealTimers(); });
 

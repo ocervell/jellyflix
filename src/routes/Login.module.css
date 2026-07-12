@@ -3,10 +3,10 @@
 .brand { color: var(--nf-red); font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
 .card label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--nf-grey); }
 .card input { padding: 12px; background: var(--nf-elevated); border-radius: var(--nf-radius); color: var(--nf-white); }
-.card button { padding: 12px; background: var(--nf-red); color: #fff; font-weight: 700; border-radius: var(--nf-radius);
-  display: flex; align-items: center; justify-content: center; gap: 8px; }
-.card button:hover { background: var(--nf-red-hover); }
-.card button:disabled { opacity: .85; }
+.card .submit { padding: 12px; background: var(--nf-red); color: #fff; font-weight: 700; border-radius: var(--nf-radius);
+  display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+.card .submit:hover { background: var(--nf-red-hover); }
+.card .submit.busy { opacity: .85; cursor: default; }
 .spinner { width: 16px; height: 16px; border-radius: 50%;
   border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }

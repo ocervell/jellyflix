@@ -1,9 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { expect, test, vi } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import Login from './Login';
 import * as useApiModule from '../hooks/useApi';
+import { initFocus } from '../lib/tv/focus';
+
+beforeAll(() => initFocus());
 
 test('submits typed credentials to login()', async () => {
   const login = vi.fn().mockResolvedValue(undefined);

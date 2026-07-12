@@ -1,11 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import TopNav from '../components/nav/TopNav';
 import Billboard from '../components/home/Billboard';
 import Row from '../components/row/Row';
 import RowSkeleton from '../components/common/RowSkeleton';
 import DetailModal from '../components/detail/DetailModal';
+import { FocusSection } from '../components/tv/FocusSection';
 import { useUserViews } from '../hooks/api/useUserViews';
 import { useResumeItems } from '../hooks/api/useResumeItems';
 import { useNextUp } from '../hooks/api/useNextUp';
@@ -41,11 +43,20 @@ export default function Home() {
   const onOpen = (i: BaseItemDto) => setDetail(i);
   const onPlay = (i: BaseItemDto) => navigate(`/watch/${i.Id}`);
 
+  const focusedOnce = useRef(false);
+  const rowsLoaded = !resumeQ.isLoading && !nextUpQ.isLoading && !hotQ.isLoading && !recentQ.isLoading;
+  useEffect(() => {
+    if (rowsLoaded && !focusedOnce.current) {
+      focusedOnce.current = true;
+      setFocus('home');
+    }
+  }, [rowsLoaded]);
+
   return (
     <div className={styles.page}>
       <TopNav />
       {hero && <Billboard item={hero} onPlay={onPlay} onMoreInfo={onOpen} />}
-      <div className={styles.rows}>
+      <FocusSection as="div" className={styles.rows} focusKey="home">
         {resumeQ.isLoading ? <RowSkeleton title="Continue Watching" /> : <Row title="Continue Watching" items={resumeQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />}
         {nextUpQ.isLoading ? <RowSkeleton title="Next Up" /> : <Row title="Next Up" items={nextUpQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />}
         {hotQ.isLoading ? <RowSkeleton title="Hot right now" /> : <Row title="Hot right now" items={hotQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />}
@@ -53,7 +64,7 @@ export default function Home() {
         <Row title="Saved for later" items={watchlist.items} onOpen={onOpen} onPlay={onPlay} />
         {mediaViews.map((v) => <LatestRow key={v.Id} view={v} onOpen={onOpen} onPlay={onPlay} />)}
         <Row title="Favorites" items={favoritesQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />
-      </div>
+      </FocusSection>
       {detail?.Id && (
         <DetailModal itemId={detail.Id} onClose={() => setDetail(null)} onPlay={onPlay} />
       )}

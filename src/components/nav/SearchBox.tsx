@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
 import { parseSearchParams, toSearchParams } from '../../lib/search/query';
+import { Focusable } from '../tv/Focusable';
+import { useTvBack } from '../../lib/tv/back';
 import styles from './SearchBox.module.css';
 
 const DEBOUNCE_MS = 300;
@@ -44,11 +46,15 @@ export default function SearchBox() {
     if (onSearch) navigate('/search', { replace: true });
   };
 
+  // Own Escape while open: the global Back-stack also listens for Escape, so
+  // consume it here (return true) to close the search without also firing history.back().
+  useTvBack(() => { close(); return true; }, open);
+
   return (
     <div className={`${styles.box} ${open ? styles.open : ''}`}>
-      <button className={styles.icon} aria-label="Search" onClick={() => setOpen((o) => !o)}>
+      <Focusable className={styles.icon} ariaLabel="Search" onEnterPress={() => setOpen((o) => !o)}>
         <Search size={20} />
-      </button>
+      </Focusable>
       {open && (
         <input
           ref={inputRef}
@@ -58,11 +64,10 @@ export default function SearchBox() {
           placeholder="Titles, genres…"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Escape') close(); }}
         />
       )}
       {open && text && (
-        <button className={styles.clear} aria-label="Clear search" onClick={close}><X size={18} /></button>
+        <Focusable className={styles.clear} ariaLabel="Clear search" onEnterPress={close}><X size={18} /></Focusable>
       )}
     </div>
   );
