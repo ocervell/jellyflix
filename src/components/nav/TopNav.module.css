@@ -5,10 +5,10 @@
 .left { display: flex; align-items: center; gap: 32px; }
 .logo { color: var(--nf-red); font-weight: 800; letter-spacing: 1px; font-size: 22px; }
 .links { display: flex; gap: 20px; }
-.links a { color: var(--nf-grey); font-size: 14px; }
-.links a:hover { color: var(--nf-white); }
-.links a.active { color: var(--nf-white); }
-.logout { color: var(--nf-grey); font-size: 14px; }
+.links > div { color: var(--nf-grey); font-size: 14px; cursor: pointer; }
+.links > div:hover { color: var(--nf-white); }
+.links > div.active { color: var(--nf-white); }
+.logout { color: var(--nf-grey); font-size: 14px; cursor: pointer; }
 .logout:hover { color: var(--nf-white); }
 @media (max-width: 800px) { .links { display: none; } }
 .right { display: flex; align-items: center; gap: 8px; }
