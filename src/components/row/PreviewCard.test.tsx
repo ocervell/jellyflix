@@ -20,3 +20,12 @@ test('play button fires onPlay', async () => {
   await userEvent.click(screen.getByRole('button', { name: /^play/i }));
   expect(onPlay).toHaveBeenCalledWith(item);
 });
+
+test('play button does not also fire onOpen (no click bubbling to wrapper)', async () => {
+  const onPlay = vi.fn();
+  const onOpen = vi.fn();
+  render(<PreviewCard item={item} onOpen={onOpen} onPlay={onPlay} />);
+  await userEvent.click(screen.getByRole('button', { name: /^play/i }));
+  expect(onPlay).toHaveBeenCalledWith(item);
+  expect(onOpen).not.toHaveBeenCalled();
+});

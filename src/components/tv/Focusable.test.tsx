@@ -16,3 +16,20 @@ test('Focusable renders its children and fires onEnterPress on Enter', () => {
   fireEvent.click(el);
   expect(onEnter).toHaveBeenCalled();
 });
+
+test('Focusable ignores bubbled clicks from nested interactive elements', () => {
+  const onEnter = vi.fn();
+  const inner = vi.fn();
+  render(
+    <Focusable onEnterPress={onEnter} ariaLabel="Card">
+      <span>label</span>
+      <button onClick={inner}>Inner</button>
+    </Focusable>,
+  );
+  fireEvent.click(screen.getByText('Inner'));
+  expect(inner).toHaveBeenCalled();
+  expect(onEnter).not.toHaveBeenCalled();
+
+  fireEvent.click(screen.getByText('label'));
+  expect(onEnter).toHaveBeenCalled();
+});

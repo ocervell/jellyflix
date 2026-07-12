@@ -15,6 +15,12 @@ export function Focusable({
     onFocus: () => onFocus?.(),
   });
   const cls = `${className ?? ''} ${focused ? styles.focused : ''}`.trim();
-  const props = { ref, className: cls, 'aria-label': ariaLabel, onClick: () => onEnterPress?.(), role: 'button', tabIndex: -1 };
+  const handleClick = (e: React.MouseEvent) => {
+    // Don't double-fire when a nested button/link/input handled the click itself
+    // (it bubbles up to this wrapper). Only activate on clicks in our own content.
+    if ((e.target as HTMLElement).closest('button, a, input, select, textarea')) return;
+    onEnterPress?.();
+  };
+  const props = { ref, className: cls, 'aria-label': ariaLabel, onClick: handleClick, role: 'button', tabIndex: -1 };
   return as === 'li' ? <li {...props}>{children}</li> : <div {...props}>{children}</div>;
 }
