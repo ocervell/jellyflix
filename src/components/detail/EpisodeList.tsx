@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { CircleCheck } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { useSeasons } from '../../hooks/api/useSeasons';
 import { useEpisodes } from '../../hooks/api/useEpisodes';
@@ -24,21 +25,26 @@ export default function EpisodeList({ seriesId, onPlay }: { seriesId: string; on
         </select>
       )}
       <ul className={styles.list}>
-        {episodes.map((ep) => (
-          <li key={ep.Id}>
-            <button className={styles.ep} onClick={() => onPlay(ep)}>
-              <span className={styles.idx}>{ep.IndexNumber}</span>
-              <span className={styles.thumb}>
-                <Img src={getCardImageUrl(api, ep, { width: 200 })} alt={ep.Name ?? ''} />
-                <ProgressBar percent={playedPercent(ep)} />
-              </span>
-              <span className={styles.info}>
-                <span className={styles.epTitle}>{ep.Name} <span className={styles.rt}>{formatRuntime(ep.RunTimeTicks)}</span></span>
-                <span className={styles.overview}>{ep.Overview}</span>
-              </span>
-            </button>
-          </li>
-        ))}
+        {episodes.map((ep) => {
+          const watched = !!ep.UserData?.Played;
+          return (
+            <li key={ep.Id}>
+              <button className={styles.ep} onClick={() => onPlay(ep)}>
+                <span className={styles.idx}>{ep.IndexNumber}</span>
+                <span className={`${styles.thumb} ${watched ? styles.thumbWatched : ''}`}>
+                  <Img src={getCardImageUrl(api, ep, { width: 200 })} alt={ep.Name ?? ''} />
+                  {watched
+                    ? <span className={styles.check} aria-label="Watched"><CircleCheck size={22} strokeWidth={2.5} /></span>
+                    : <ProgressBar percent={playedPercent(ep)} />}
+                </span>
+                <span className={styles.info}>
+                  <span className={styles.epTitle}>{ep.Name} <span className={styles.rt}>{formatRuntime(ep.RunTimeTicks)}</span></span>
+                  <span className={styles.overview}>{ep.Overview}</span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

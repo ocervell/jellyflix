@@ -11,7 +11,7 @@ export function useEpisodes(seriesId?: string, seasonId?: string) {
     enabled: !!seriesId && !!seasonId,
     queryFn: async ({ signal }) => {
       const { data } = await getTvShowsApi(api).getEpisodes(
-        { seriesId: seriesId!, userId: session.userId, seasonId, fields: [ItemFields.Overview], enableImageTypes: [ImageType.Primary] },
+        { seriesId: seriesId!, userId: session.userId, seasonId, fields: [ItemFields.Overview], enableImageTypes: [ImageType.Primary], enableUserData: true },
         { signal },
       );
       return data.Items ?? [];

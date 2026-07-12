@@ -6,6 +6,9 @@
 .ep:hover { background: rgba(255,255,255,.03); }
 .idx { color: var(--nf-grey); font-size: 20px; text-align: center; }
 .thumb { position: relative; aspect-ratio: 16/9; border-radius: var(--nf-radius); overflow: hidden; background: var(--nf-elevated-2); }
+.thumbWatched img { opacity: .5; }
+.check { position: absolute; top: 6px; right: 6px; color: #fff; background: rgba(0,0,0,.6);
+  border-radius: 50%; display: grid; place-items: center; }
 .info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .epTitle { font-weight: 700; }
 .rt { color: var(--nf-grey); font-weight: 400; font-size: 13px; margin-left: 8px; white-space: nowrap; }
