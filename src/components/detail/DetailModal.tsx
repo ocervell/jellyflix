@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Play, Tv } from 'lucide-react';
+import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { useApi } from '../../hooks/useApi';
 import { useItem } from '../../hooks/api/useItem';
 import { getBackdropUrl, getLogoUrl } from '../../lib/jellyfin/images';
 import { formatRuntime, cardTitle, isResumable, playedPercent } from '../../lib/format';
 import EpisodeList from './EpisodeList';
 import ItemActions from '../common/ItemActions';
+import { FocusSection } from '../tv/FocusSection';
+import { Focusable } from '../tv/Focusable';
+import { useTvBack } from '../../lib/tv/back';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import styles from './DetailModal.module.css';
 
@@ -19,16 +23,13 @@ export default function DetailModal({
   useEffect(() => { setId(itemId); }, [itemId]);
   const { data: item, isLoading } = useItem(id);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  useTvBack(() => { onClose(); return true; }, true);
+  useEffect(() => { if (item) setFocus('detail-play'); }, [item]);
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.close} onClick={onClose} aria-label="Close">✕</button>
+      <FocusSection isBoundary focusKey="detail-modal" className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <Focusable className={styles.close} ariaLabel="Close" onEnterPress={onClose}>✕</Focusable>
         {isLoading || !item ? (
           <div className={styles.loading}>Loading…</div>
         ) : (
@@ -45,18 +46,21 @@ export default function DetailModal({
                 {cardTitle(item).subtitle && <div className={styles.episode}>{cardTitle(item).subtitle}</div>}
                 {/* series/season·episode for episodes; empty for movies/series */}
                 <div className={styles.heroButtons}>
-                  <button className={styles.play} onClick={() => onPlay(item)}>
+                  <Focusable focusKey="detail-play" className={styles.play}
+                    ariaLabel={isResumable(item) ? 'Continue' : 'Play'} onEnterPress={() => onPlay(item)}>
                     <Play size={20} fill="currentColor" strokeWidth={0} /> {isResumable(item) ? 'Continue' : 'Play'}
                     {isResumable(item) && (
                       <span className={styles.playProgress}><span style={{ width: `${playedPercent(item)}%` }} /></span>
                     )}
-                  </button>
+                  </Focusable>
                   {item.Type === 'Episode' && item.SeriesId && (
-                    <button className={styles.series} onClick={() => setId(item.SeriesId!)}>
+                    <Focusable className={styles.series}
+                      ariaLabel={item.SeriesName ? `Go to ${item.SeriesName}` : 'Go to series'}
+                      onEnterPress={() => setId(item.SeriesId!)}>
                       <Tv size={18} /> {item.SeriesName ? `Go to ${item.SeriesName}` : 'Go to series'}
-                    </button>
+                    </Focusable>
                   )}
-                  <ItemActions item={item} size="md" />
+                  <FocusSection focusKey="detail-actions"><ItemActions item={item} size="md" /></FocusSection>
                 </div>
               </div>
             </div>
@@ -72,7 +76,7 @@ export default function DetailModal({
             </div>
           </>
         )}
-      </div>
+      </FocusSection>
     </div>
   );
 }

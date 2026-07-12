@@ -3,8 +3,8 @@
 .sort select { background: var(--nf-elevated); color: #fff; padding: 8px 10px; border-radius: var(--nf-radius); }
 .order { width: 36px; height: 36px; background: var(--nf-elevated); color: #fff; border-radius: var(--nf-radius); }
 .status { display: inline-flex; border: 1px solid #333; border-radius: var(--nf-radius); overflow: hidden; }
-.status button { padding: 8px 12px; color: var(--nf-grey); font-size: 14px; }
-.status button:hover { color: #fff; }
+.status button, .status [role="button"] { padding: 8px 12px; color: var(--nf-grey); font-size: 14px; }
+.status button:hover, .status [role="button"]:hover { color: #fff; }
 .status .active { background: var(--nf-red); color: #fff; }
 .clear { color: var(--nf-grey); font-size: 14px; text-decoration: underline; }
 .count { margin-left: auto; color: var(--nf-grey); font-size: 14px; }

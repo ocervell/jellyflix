@@ -4,8 +4,7 @@ import type { Api } from '@jellyfin/sdk';
 import { createJellyfinApi } from '../lib/jellyfin/api';
 import { authenticate } from '../lib/jellyfin/auth';
 import { clearSession, loadSession, saveSession, type Session } from '../lib/jellyfin/session';
-
-const SERVER_URL = '/jf';
+import { getServerUrl } from '../lib/tv/server';
 
 type AuthCtx = {
   session: Session | null;
@@ -18,7 +17,9 @@ export function ApiProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(() => loadSession());
 
   const login = useCallback(async (u: string, p: string) => {
-    const s = await authenticate(SERVER_URL, u, p);
+    const serverUrl = getServerUrl();
+    if (!serverUrl) throw new Error('No server selected');
+    const s = await authenticate(serverUrl, u, p);
     saveSession(s);
     setSession(s);
   }, []);

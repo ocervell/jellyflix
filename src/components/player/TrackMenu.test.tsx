@@ -1,6 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { expect, test, vi } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
+import { initFocus } from '../../lib/tv/focus';
 import TrackMenu from './TrackMenu';
+
+beforeAll(() => initFocus());
 
 test('selecting a track calls the handler and auto-closes the menu', () => {
   const onAudio = vi.fn(), onSubtitle = vi.fn(), onOpenChange = vi.fn();

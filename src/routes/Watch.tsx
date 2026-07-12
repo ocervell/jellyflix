@@ -6,6 +6,7 @@ import { usePlaybackSession } from '../hooks/player/usePlaybackSession';
 import { useAbrController } from '../hooks/player/useAbrController';
 import type { EngineState } from '../hooks/player/useVideoEngine';
 import { getBackdropUrl } from '../lib/jellyfin/images';
+import { useTvBack } from '../lib/tv/back';
 import { reportStart, reportProgress, reportStopped } from '../lib/jellyfin/reporting';
 import { selectTrickplay } from '../lib/jellyfin/trickplay';
 import VideoPlayer from '../components/player/VideoPlayer';
@@ -94,6 +95,8 @@ export default function Watch() {
     }
     navigate(-1);
   }, [api, navigate]);
+
+  useTvBack(() => { onBack(); return true; }, true);
 
   const trickplay = useMemo(
     () => item && session.mediaSource?.Id ? selectTrickplay(item, session.mediaSource.Id, window.screen.width, window.devicePixelRatio) : null,

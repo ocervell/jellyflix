@@ -1,9 +1,12 @@
 import { render, screen } from '@testing-library/react';
-import { expect, test, vi } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
+import { initFocus } from '../../lib/tv/focus';
 
 vi.mock('./PreviewCard', () => ({ default: ({ item }: { item: BaseItemDto }) => <div>{item.Name}</div> }));
 import Row from './Row';
+
+beforeAll(() => initFocus());
 
 test('renders title and items', () => {
   const items = [{ Id: '1', Name: 'A' }, { Id: '2', Name: 'B' }] as BaseItemDto[];

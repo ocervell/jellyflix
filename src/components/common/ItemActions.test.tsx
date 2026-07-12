@@ -1,7 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { expect, test, vi, beforeEach } from 'vitest';
+import { expect, test, vi, beforeAll, beforeEach } from 'vitest';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import type { GroupedItem } from '../../lib/rowGrouping';
+import { initFocus } from '../../lib/tv/focus';
 
 const toggleWatchlist = vi.fn();
 const toggleFav = vi.fn();
@@ -12,16 +13,23 @@ vi.mock('../../hooks/api/useWatchlist', () => ({ useWatchlist: () => ({ membersh
 vi.mock('../../hooks/api/useItemActions', () => ({ useToggleFavorite: () => toggleFav, useToggleWatched: () => toggleWatched }));
 import ItemActions from './ItemActions';
 
+beforeAll(() => initFocus());
 beforeEach(() => { toggleWatchlist.mockReset(); toggleFav.mockReset(); toggleWatched.mockReset(); membership = new Set(); });
+
+/** Both the Focusable wrapper and the real <button> can share an accessible
+ * name (the button's aria-label bubbles up as the wrapper's content-name), so
+ * disambiguate by picking the real <button> element — same pattern used by
+ * PosterCard's test after its root became a Focusable too. */
+const getButton = (name: RegExp) => screen.getAllByRole('button', { name }).find((el) => el.tagName === 'BUTTON')!;
 
 test('renders three buttons; not-saved shows Save-for-later and toggles it, stopping propagation', () => {
   const item = { Id: 'x', UserData: { IsFavorite: false, Played: false } } as BaseItemDto;
   const onParent = vi.fn();
   render(<div onClick={onParent}><ItemActions item={item} /></div>);
-  expect(screen.getByRole('button', { name: /save for later/i })).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /add to favorites/i })).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /mark watched/i })).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: /save for later/i }));
+  expect(getButton(/save for later/i)).toBeInTheDocument();
+  expect(getButton(/add to favorites/i)).toBeInTheDocument();
+  expect(getButton(/mark watched/i)).toBeInTheDocument();
+  fireEvent.click(getButton(/save for later/i));
   expect(toggleWatchlist).toHaveBeenCalledWith(item);
   expect(onParent).not.toHaveBeenCalled(); // stopPropagation
 });
@@ -30,10 +38,10 @@ test('reflects saved + favorite state and toggles favorite/watched', () => {
   membership = new Set(['x']);
   const item = { Id: 'x', UserData: { IsFavorite: true, Played: false } } as BaseItemDto;
   render(<ItemActions item={item} />);
-  expect(screen.getByRole('button', { name: /remove from saved for later/i })).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: /remove from favorites/i }));
+  expect(getButton(/remove from saved for later/i)).toBeInTheDocument();
+  fireEvent.click(getButton(/remove from favorites/i));
   expect(toggleFav).toHaveBeenCalledWith(item);
-  fireEvent.click(screen.getByRole('button', { name: /mark watched/i }));
+  fireEvent.click(getButton(/mark watched/i));
   expect(toggleWatched).toHaveBeenCalledWith(item);
 });
 
@@ -42,7 +50,7 @@ test('grouped card with all members favorited: shows active heart, unfavorites e
   const m2 = { Id: 'e2', UserData: { IsFavorite: true, Played: false } } as BaseItemDto;
   const item = { Id: 'S', Type: 'Series', groupMembers: [m1, m2] } as GroupedItem;
   render(<ItemActions item={item} />);
-  fireEvent.click(screen.getByRole('button', { name: /remove from favorites/i }));
+  fireEvent.click(getButton(/remove from favorites/i));
   expect(toggleFav).toHaveBeenCalledTimes(2);
   expect(toggleFav).toHaveBeenCalledWith(m1);
   expect(toggleFav).toHaveBeenCalledWith(m2);
@@ -53,7 +61,7 @@ test('grouped card with no member favorited: shows inactive heart, favorites eve
   const m2 = { Id: 'e2', UserData: { IsFavorite: false, Played: false } } as BaseItemDto;
   const item = { Id: 'S', Type: 'Series', groupMembers: [m1, m2] } as GroupedItem;
   render(<ItemActions item={item} />);
-  fireEvent.click(screen.getByRole('button', { name: /add to favorites/i }));
+  fireEvent.click(getButton(/add to favorites/i));
   expect(toggleFav).toHaveBeenCalledTimes(2);
 });
 
@@ -64,7 +72,7 @@ test('grouped card save state reflects member watchlist membership and removes o
   const item = { Id: 'S', Type: 'Series', groupMembers: [m1, m2] } as GroupedItem;
   render(<ItemActions item={item} />);
   // some member saved -> shows "remove"; target is "not saved", so only e1 (currently saved) is toggled
-  fireEvent.click(screen.getByRole('button', { name: /remove from saved for later/i }));
+  fireEvent.click(getButton(/remove from saved for later/i));
   expect(toggleWatchlist).toHaveBeenCalledTimes(1);
   expect(toggleWatchlist).toHaveBeenCalledWith(m1);
 });

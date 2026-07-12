@@ -1,5 +1,6 @@
 jellyfin-web/
 node_modules/
+android/
 dist/
 .env
 .env.local

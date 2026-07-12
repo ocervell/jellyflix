@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { expect, test, vi } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
+import { initFocus } from '../../lib/tv/focus';
 
 vi.mock('../../hooks/useApi', () => ({ useApi: () => ({ api: {}, session: { userId: 'u' } }) }));
 vi.mock('../../lib/jellyfin/images', () => ({ getBackdropUrl: () => 'http://bd', getLogoUrl: () => null }));
@@ -12,6 +13,8 @@ vi.mock('./EpisodeList', () => ({ default: () => <div>episodes</div> }));
 vi.mock('../common/ItemActions', () => ({ default: () => <div>item actions</div> }));
 
 import DetailModal from './DetailModal';
+
+beforeAll(() => initFocus());
 
 test('renders movie detail and plays', async () => {
   const onPlay = vi.fn();

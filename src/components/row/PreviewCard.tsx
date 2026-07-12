@@ -5,6 +5,7 @@ import { formatRuntime, playedPercent, cardTitle } from '../../lib/format';
 import { Img } from '../common/Img';
 import { ProgressBar } from '../common/ProgressBar';
 import ItemActions from '../common/ItemActions';
+import { Focusable } from '../tv/Focusable';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import styles from './PreviewCard.module.css';
 
@@ -16,7 +17,12 @@ export default function PreviewCard({
   const { title, subtitle } = cardTitle(item);
   const fullLabel = subtitle ? `${title} – ${subtitle}` : title;
   return (
-    <div className={styles.card}>
+    <Focusable
+      className={styles.card}
+      ariaLabel={fullLabel}
+      onEnterPress={() => onOpen(item)}
+      onFocus={() => (document.activeElement as HTMLElement | null)?.scrollIntoView({ block: 'nearest', inline: 'center' })}
+    >
       <button className={styles.art} onClick={() => onOpen(item)} aria-label={fullLabel}>
         <Img src={src} alt={fullLabel} />
         {!src && <span className={styles.fallbackTitle}>{title}</span>}
@@ -39,6 +45,6 @@ export default function PreviewCard({
         <div className={styles.name}>{title}</div>
         {subtitle && <div className={styles.episode}>{subtitle}</div>}
       </div>
-    </div>
+    </Focusable>
   );
 }

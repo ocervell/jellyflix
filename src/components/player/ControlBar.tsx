@@ -4,6 +4,8 @@ import type { VideoEngine } from '../../hooks/player/useVideoEngine';
 import { useAutoHide } from '../../hooks/player/useAutoHide';
 import Scrubber from './Scrubber';
 import { formatTime } from '../../lib/format';
+import { FocusSection } from '../tv/FocusSection';
+import { Focusable } from '../tv/Focusable';
 import styles from './ControlBar.module.css';
 
 function VolumeIcon({ muted, volume }: { muted: boolean; volume: number }) {
@@ -34,18 +36,15 @@ export default function ControlBar({
       ping();
       switch (e.key) {
         case ' ': case 'k': e.preventDefault(); engine.togglePlay(); break;
-        case 'ArrowRight': engine.seekBy(10); break;
-        case 'ArrowLeft': engine.seekBy(-10); break;
-        case 'ArrowUp': engine.setVolume(Math.min(1, state.volume + 0.1)); break;
-        case 'ArrowDown': engine.setVolume(Math.max(0, state.volume - 0.1)); break;
         case 'f': engine.requestFullscreen(); break;
         case 'm': engine.toggleMute(); break;
-        case 'Escape': onBack(); break;
+        // Arrow keys: owned by norigin focus movement + Scrubber's onArrowPress.
+        // Escape/Back: owned by the TvBack stack.
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [engine, state.volume, onBack, ping]);
+  }, [engine, ping]);
 
   const remaining = Math.max(0, displayDuration - displayTime);
   // Lock the button to Pause while loading/buffering (the player autoplays, so a Play icon
@@ -66,30 +65,39 @@ export default function ControlBar({
       <div className={styles.bottom}>
         <div className={styles.scrubRow}>
           {bubbleSlot}
-          <Scrubber currentTime={displayTime} duration={displayDuration} bufferedEnd={state.bufferedEnd} onScrub={onScrub} onHover={onHover} />
+          <Focusable ariaLabel="Seek bar" onFocus={ping}
+            onArrowPress={(dir) => {
+              if (dir === 'left') { engine.seekBy(-10); return false; }
+              if (dir === 'right') { engine.seekBy(10); return false; }
+              return true;
+            }}>
+            <Scrubber currentTime={displayTime} duration={displayDuration} bufferedEnd={state.bufferedEnd} onScrub={onScrub} onHover={onHover} />
+          </Focusable>
         </div>
-        <div className={styles.buttons}>
-          <button onClick={engine.togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
+        <FocusSection className={styles.buttons}>
+          <Focusable ariaLabel={playing ? 'Pause' : 'Play'} onFocus={ping} onEnterPress={engine.togglePlay}>
             {playing ? <Pause size={20} fill="currentColor" strokeWidth={0} /> : <Play size={20} fill="currentColor" strokeWidth={0} />}
-          </button>
-          <button className={styles.icon10} onClick={() => engine.seekBy(-10)} aria-label="Rewind 10 seconds">
+          </Focusable>
+          <Focusable className={styles.icon10} ariaLabel="Rewind 10 seconds" onFocus={ping} onEnterPress={() => engine.seekBy(-10)}>
             <RotateCcw size={22} /><span className={styles.num} aria-hidden="true">10</span>
-          </button>
-          <button className={styles.icon10} onClick={() => engine.seekBy(10)} aria-label="Forward 10 seconds">
+          </Focusable>
+          <Focusable className={styles.icon10} ariaLabel="Forward 10 seconds" onFocus={ping} onEnterPress={() => engine.seekBy(10)}>
             <RotateCw size={22} /><span className={styles.num} aria-hidden="true">10</span>
-          </button>
+          </Focusable>
           <div className={styles.volumeGroup}>
-            <button onClick={engine.toggleMute} aria-label={state.muted ? 'Unmute' : 'Mute'}>
+            <Focusable ariaLabel={state.muted ? 'Unmute' : 'Mute'} onFocus={ping} onEnterPress={engine.toggleMute}>
               <VolumeIcon muted={state.muted} volume={state.volume} />
-            </button>
+            </Focusable>
             <input className={styles.volume} type="range" min={0} max={1} step={0.05} value={state.muted ? 0 : state.volume}
               onChange={(e) => engine.setVolume(Number(e.target.value))} aria-label="Volume" />
           </div>
           <span className={styles.time}>{formatTime(displayTime)} / -{formatTime(remaining)}</span>
           <span className={styles.spacer} />
           {extras}
-          <button onClick={engine.requestFullscreen} aria-label="Fullscreen"><Maximize size={26} /></button>
-        </div>
+          <Focusable ariaLabel="Fullscreen" onFocus={ping} onEnterPress={engine.requestFullscreen}>
+            <Maximize size={26} />
+          </Focusable>
+        </FocusSection>
       </div>
     </div>
   );

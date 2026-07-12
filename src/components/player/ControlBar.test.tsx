@@ -1,6 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { expect, test, vi } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
+import { initFocus } from '../../lib/tv/focus';
 import ControlBar from './ControlBar';
+
+beforeAll(() => initFocus());
 
 function makeEngine(over = {}) {
   return { videoRef: { current: null }, state: { paused: true, currentTime: 10, duration: 100, bufferedEnd: 20, volume: 1, muted: false, waiting: false, stallCount: 0 },

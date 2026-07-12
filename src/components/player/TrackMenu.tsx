@@ -1,6 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import type { AudioTrack, SubtitleTrack } from '../../lib/jellyfin/mediaStreams';
+import { FocusSection } from '../tv/FocusSection';
+import { Focusable } from '../tv/Focusable';
+import { useTvBack } from '../../lib/tv/back';
 import styles from './TrackMenu.module.css';
+
+const PANEL_FOCUS_KEY = 'track-menu-panel';
 
 export default function TrackMenu({
   audioTracks, subtitleTracks, audioIndex, subtitleIndex, onAudio, onSubtitle, onOpenChange,
@@ -16,31 +22,33 @@ export default function TrackMenu({
   const close = () => { setOpen(false); onOpenChange(false); };
   const pickAudio = (index: number) => { onAudio(index); close(); };
   const pickSubtitle = (index: number | null) => { onSubtitle(index); close(); };
+  useTvBack(() => { if (open) { close(); return true; } return false; }, open);
+  useEffect(() => { if (open) setFocus(PANEL_FOCUS_KEY); }, [open]);
   return (
     <div className={styles.wrap}>
-      <button onClick={toggle} aria-label="Audio and subtitles" aria-expanded={open}>💬</button>
+      <Focusable ariaLabel="Audio and subtitles" onEnterPress={toggle}>💬</Focusable>
       {open && (
-        <div className={styles.panel} role="menu">
+        <FocusSection isBoundary focusKey={PANEL_FOCUS_KEY} className={styles.panel}>
           <div className={styles.col}>
             <h4>Audio</h4>
             {audioTracks.map((t) => (
-              <button key={t.index} className={t.index === audioIndex ? styles.active : ''} onClick={() => pickAudio(t.index)}>
+              <Focusable key={t.index} className={t.index === audioIndex ? styles.active : ''} onEnterPress={() => pickAudio(t.index)}>
                 {t.index === audioIndex ? '✓ ' : ''}{t.label}
-              </button>
+              </Focusable>
             ))}
           </div>
           <div className={styles.col}>
             <h4>Subtitles</h4>
-            <button className={subtitleIndex == null ? styles.active : ''} onClick={() => pickSubtitle(null)}>
+            <Focusable className={subtitleIndex == null ? styles.active : ''} onEnterPress={() => pickSubtitle(null)}>
               {subtitleIndex == null ? '✓ ' : ''}Off
-            </button>
+            </Focusable>
             {subtitleTracks.map((t) => (
-              <button key={t.index} className={t.index === subtitleIndex ? styles.active : ''} onClick={() => pickSubtitle(t.index)}>
+              <Focusable key={t.index} className={t.index === subtitleIndex ? styles.active : ''} onEnterPress={() => pickSubtitle(t.index)}>
                 {t.index === subtitleIndex ? '✓ ' : ''}{t.label}
-              </button>
+              </Focusable>
             ))}
           </div>
-        </div>
+        </FocusSection>
       )}
     </div>
   );

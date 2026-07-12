@@ -1,18 +1,29 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useApi';
+import { Focusable } from '../components/tv/Focusable';
+import { clearServer, getSavedServer, isTvBuild } from '../lib/tv/server';
+import ServerScreen from './ServerScreen';
 import styles from './Login.module.css';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const tvBuild = isTvBuild();
+  // Web build always has a server (/jf). TV build needs the user to pick one first.
+  const [server, setServer] = useState<string | null>(() => (tvBuild ? getSavedServer() : '/jf'));
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  useEffect(() => { if (server) inputRef.current?.focus(); }, [server]);
+
+  if (!server) return <ServerScreen onConnected={setServer} />;
+
+  async function doLogin() {
+    if (busy) return;
     setBusy(true); setError('');
     try {
       await login(username, password);
@@ -24,20 +35,34 @@ export default function Login() {
     }
   }
 
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    void doLogin();
+  }
+
+  function onInputKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') { e.preventDefault(); void doLogin(); }
+  }
+
   return (
     <div className={styles.wrap}>
       <form className={styles.card} onSubmit={onSubmit}>
         <h1 className={styles.brand}>JELLYFLIX</h1>
         {error && <p className={styles.error}>{error}</p>}
         <label>Username
-          <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
+          <input ref={inputRef} value={username} onChange={(e) => setUsername(e.target.value)} onKeyDown={onInputKeyDown} autoComplete="username" />
         </label>
         <label>Password
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={onInputKeyDown} autoComplete="current-password" />
         </label>
-        <button type="submit" disabled={busy}>
+        <Focusable ariaLabel="Sign In" className={`${styles.submit} ${busy ? styles.busy : ''}`} onEnterPress={() => void doLogin()}>
           {busy ? <><span className={styles.spinner} aria-hidden="true" />Signing in…</> : 'Sign In'}
-        </button>
+        </Focusable>
+        {tvBuild && (
+          <Focusable ariaLabel="Change server" className={styles.changeServer} onEnterPress={() => { clearServer(); setServer(null); }}>
+            Change server
+          </Focusable>
+        )}
       </form>
     </div>
   );
