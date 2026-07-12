@@ -56,7 +56,7 @@ export default function Home() {
     <div className={styles.page}>
       <TopNav />
       {hero && <Billboard item={hero} onPlay={onPlay} onMoreInfo={onOpen} />}
-      <FocusSection as="div" className={styles.rows} focusKey="home">
+      <FocusSection className={styles.rows} focusKey="home">
         {resumeQ.isLoading ? <RowSkeleton title="Continue Watching" /> : <Row title="Continue Watching" items={resumeQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />}
         {nextUpQ.isLoading ? <RowSkeleton title="Next Up" /> : <Row title="Next Up" items={nextUpQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />}
         {hotQ.isLoading ? <RowSkeleton title="Hot right now" /> : <Row title="Hot right now" items={hotQ.data ?? []} onOpen={onOpen} onPlay={onPlay} />}

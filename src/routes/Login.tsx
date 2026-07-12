@@ -33,16 +33,20 @@ export default function Login() {
     void doLogin();
   }
 
+  function onInputKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') { e.preventDefault(); void doLogin(); }
+  }
+
   return (
     <div className={styles.wrap}>
       <form className={styles.card} onSubmit={onSubmit}>
         <h1 className={styles.brand}>JELLYFLIX</h1>
         {error && <p className={styles.error}>{error}</p>}
         <label>Username
-          <input ref={inputRef} value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
+          <input ref={inputRef} value={username} onChange={(e) => setUsername(e.target.value)} onKeyDown={onInputKeyDown} autoComplete="username" />
         </label>
         <label>Password
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={onInputKeyDown} autoComplete="current-password" />
         </label>
         <Focusable ariaLabel="Sign In" className={`${styles.submit} ${busy ? styles.busy : ''}`} onEnterPress={() => void doLogin()}>
           {busy ? <><span className={styles.spinner} aria-hidden="true" />Signing in…</> : 'Sign In'}
