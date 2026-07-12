@@ -3,6 +3,7 @@ import { useToggleWatchlist } from '../../hooks/api/useToggleWatchlist';
 import { useWatchlist } from '../../hooks/api/useWatchlist';
 import { useToggleFavorite, useToggleWatched } from '../../hooks/api/useItemActions';
 import { getGroupMembers } from '../../lib/rowGrouping';
+import { Focusable } from '../tv/Focusable';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import styles from './ItemActions.module.css';
 
@@ -47,18 +48,24 @@ export default function ItemActions({ item, size = 'md' }: { item: BaseItemDto; 
   const watchLabel = played ? 'Mark unwatched' : 'Mark watched';
   return (
     <div className={`${styles.actions} ${size === 'sm' ? styles.sm : ''}`}>
-      <button className={styles.btn} aria-label={savedLabel} title={savedLabel}
-        onClick={(e) => { stop(e); onSave(); }}>
-        {saved ? <Check size={iconSize} /> : <Plus size={iconSize} />}
-      </button>
-      <button className={`${styles.btn} ${fav ? styles.fav : ''}`} aria-label={favLabel} title={favLabel}
-        onClick={(e) => { stop(e); onFav(); }}>
-        <Heart size={iconSize} fill={fav ? 'currentColor' : 'none'} />
-      </button>
-      <button className={`${styles.btn} ${played ? styles.on : ''}`} aria-label={watchLabel} title={watchLabel}
-        onClick={(e) => { stop(e); onWatched(); }}>
-        {played ? <CircleCheck size={iconSize} /> : <Circle size={iconSize} />}
-      </button>
+      <Focusable onEnterPress={onSave}>
+        <button className={styles.btn} aria-label={savedLabel} title={savedLabel}
+          onClick={(e) => { stop(e); onSave(); }}>
+          {saved ? <Check size={iconSize} /> : <Plus size={iconSize} />}
+        </button>
+      </Focusable>
+      <Focusable onEnterPress={onFav}>
+        <button className={`${styles.btn} ${fav ? styles.fav : ''}`} aria-label={favLabel} title={favLabel}
+          onClick={(e) => { stop(e); onFav(); }}>
+          <Heart size={iconSize} fill={fav ? 'currentColor' : 'none'} />
+        </button>
+      </Focusable>
+      <Focusable onEnterPress={onWatched}>
+        <button className={`${styles.btn} ${played ? styles.on : ''}`} aria-label={watchLabel} title={watchLabel}
+          onClick={(e) => { stop(e); onWatched(); }}>
+          {played ? <CircleCheck size={iconSize} /> : <Circle size={iconSize} />}
+        </button>
+      </Focusable>
     </div>
   );
 }
