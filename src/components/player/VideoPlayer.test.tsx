@@ -1,9 +1,12 @@
 import { render } from '@testing-library/react';
-import { expect, test, vi, beforeEach } from 'vitest';
+import { beforeAll, expect, test, vi, beforeEach } from 'vitest';
 vi.mock('hls.js', () => ({ default: class { static isSupported() { return false; } static Events = { ERROR: 'hlsError' }; static ErrorTypes = { NETWORK_ERROR: 'net', MEDIA_ERROR: 'media' }; on() {} loadSource() {} attachMedia() {} startLoad() {} recoverMediaError() {} destroy() {} } }));
 import VideoPlayer from './VideoPlayer';
 import type { PlaybackSession } from '../../hooks/player/usePlaybackSession';
 import { ApiProvider } from '../../hooks/useApi';
+import { initFocus } from '../../lib/tv/focus';
+
+beforeAll(() => initFocus());
 
 beforeEach(() => {
   localStorage.setItem('jellyflix.session', JSON.stringify({
