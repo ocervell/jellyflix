@@ -36,18 +36,15 @@ export default function ControlBar({
       ping();
       switch (e.key) {
         case ' ': case 'k': e.preventDefault(); engine.togglePlay(); break;
-        case 'ArrowRight': engine.seekBy(10); break;
-        case 'ArrowLeft': engine.seekBy(-10); break;
-        case 'ArrowUp': engine.setVolume(Math.min(1, state.volume + 0.1)); break;
-        case 'ArrowDown': engine.setVolume(Math.max(0, state.volume - 0.1)); break;
         case 'f': engine.requestFullscreen(); break;
         case 'm': engine.toggleMute(); break;
-        case 'Escape': onBack(); break;
+        // Arrow keys: owned by norigin focus movement + Scrubber's onArrowPress.
+        // Escape/Back: owned by the TvBack stack.
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [engine, state.volume, onBack, ping]);
+  }, [engine, ping]);
 
   const remaining = Math.max(0, displayDuration - displayTime);
   // Lock the button to Pause while loading/buffering (the player autoplays, so a Play icon
