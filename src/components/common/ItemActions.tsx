@@ -1,7 +1,9 @@
-import { Plus, Check, Heart, Circle, CircleCheck } from 'lucide-react';
+import { Plus, Check, Heart, Circle, CircleCheck, Download } from 'lucide-react';
 import { useToggleWatchlist } from '../../hooks/api/useToggleWatchlist';
 import { useWatchlist } from '../../hooks/api/useWatchlist';
 import { useToggleFavorite, useToggleWatched } from '../../hooks/api/useItemActions';
+import { useApi } from '../../hooks/useApi';
+import { canDownload, downloadUrl, triggerDownload } from '../../lib/jellyfin/download';
 import { getGroupMembers } from '../../lib/rowGrouping';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import styles from './ItemActions.module.css';
@@ -10,6 +12,7 @@ export default function ItemActions({ item, size = 'md' }: { item: BaseItemDto; 
   const toggleWatchlist = useToggleWatchlist();
   const toggleFavorite = useToggleFavorite();
   const toggleWatched = useToggleWatched();
+  const { session } = useApi();
   const { membership } = useWatchlist();
 
   const members = getGroupMembers(item);
@@ -42,6 +45,10 @@ export default function ItemActions({ item, size = 'md' }: { item: BaseItemDto; 
 
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   const iconSize = size === 'sm' ? 16 : 19;
+  const onDownload = () => {
+    if (item.Id) triggerDownload(downloadUrl(session.serverUrl, session.accessToken, item.Id));
+  };
+
   const savedLabel = saved ? 'Remove from Saved for later' : 'Save for later';
   const favLabel = fav ? 'Remove from Favorites' : 'Add to Favorites';
   const watchLabel = played ? 'Mark unwatched' : 'Mark watched';
@@ -59,6 +66,12 @@ export default function ItemActions({ item, size = 'md' }: { item: BaseItemDto; 
         onClick={(e) => { stop(e); onWatched(); }}>
         {played ? <CircleCheck size={iconSize} /> : <Circle size={iconSize} />}
       </button>
+      {canDownload(item) && (
+        <button className={styles.btn} aria-label="Download" title="Download"
+          onClick={(e) => { stop(e); onDownload(); }}>
+          <Download size={iconSize} />
+        </button>
+      )}
     </div>
   );
 }

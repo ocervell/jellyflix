@@ -10,9 +10,12 @@ let membership = new Set<string>();
 vi.mock('../../hooks/api/useToggleWatchlist', () => ({ useToggleWatchlist: () => toggleWatchlist }));
 vi.mock('../../hooks/api/useWatchlist', () => ({ useWatchlist: () => ({ membership }) }));
 vi.mock('../../hooks/api/useItemActions', () => ({ useToggleFavorite: () => toggleFav, useToggleWatched: () => toggleWatched }));
+vi.mock('../../hooks/useApi', () => ({ useApi: () => ({ session: { serverUrl: '/jf', accessToken: 'tok' } }) }));
+vi.mock('../../lib/jellyfin/download', async (orig) => ({ ...(await orig<object>()), triggerDownload: vi.fn() }));
 import ItemActions from './ItemActions';
+import { triggerDownload, downloadUrl } from '../../lib/jellyfin/download';
 
-beforeEach(() => { toggleWatchlist.mockReset(); toggleFav.mockReset(); toggleWatched.mockReset(); membership = new Set(); });
+beforeEach(() => { toggleWatchlist.mockReset(); toggleFav.mockReset(); toggleWatched.mockReset(); vi.mocked(triggerDownload).mockReset(); membership = new Set(); });
 
 test('renders three buttons; not-saved shows Save-for-later and toggles it, stopping propagation', () => {
   const item = { Id: 'x', UserData: { IsFavorite: false, Played: false } } as BaseItemDto;
@@ -55,6 +58,17 @@ test('grouped card with no member favorited: shows inactive heart, favorites eve
   render(<ItemActions item={item} />);
   fireEvent.click(screen.getByRole('button', { name: /add to favorites/i }));
   expect(toggleFav).toHaveBeenCalledTimes(2);
+});
+
+test('downloadable item shows a Download button that triggers the download; series does not', () => {
+  const movie = { Id: 'mv', Type: 'Movie', UserData: {} } as BaseItemDto;
+  const { rerender } = render(<ItemActions item={movie} />);
+  const btn = screen.getByRole('button', { name: /download/i });
+  fireEvent.click(btn);
+  expect(triggerDownload).toHaveBeenCalledWith(downloadUrl('/jf', 'tok', 'mv'));
+
+  rerender(<ItemActions item={{ Id: 'S', Type: 'Series', UserData: {} } as BaseItemDto} />);
+  expect(screen.queryByRole('button', { name: /download/i })).not.toBeInTheDocument();
 });
 
 test('grouped card save state reflects member watchlist membership and removes only members still in it', () => {
