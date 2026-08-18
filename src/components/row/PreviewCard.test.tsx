@@ -31,12 +31,12 @@ test('in-progress item shows the title only (no metadata row)', () => {
   expect(screen.queryByText(/2009/)).not.toBeInTheDocument();
 });
 
-test('episode card shows only the SxEx code as subtitle (not the episode title)', () => {
+test('episode card: title + one meta line (SxEx · year), no episode title', () => {
   const ep = { Id: 'e', Type: 'Episode', SeriesName: 'Platonic', Name: 'La fête de divorce',
     ParentIndexNumber: 1, IndexNumber: 4, ProductionYear: 2023 } as BaseItemDto;
   render(<PreviewCard item={ep} onOpen={() => {}} onPlay={() => {}} />);
   expect(screen.getByText('Platonic')).toBeInTheDocument();
-  expect(screen.getByText('S1:E4')).toBeInTheDocument();
+  expect(screen.getByText('S1:E4 · 2023')).toBeInTheDocument();
   expect(screen.queryByText(/La fête de divorce/)).not.toBeInTheDocument();
 });
 
