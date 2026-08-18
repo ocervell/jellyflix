@@ -1,14 +1,19 @@
 import { Play, Info } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
+import { useItem } from '../../hooks/api/useItem';
 import { getBackdropUrl, getLogoUrl } from '../../lib/jellyfin/images';
 import { cardTitle, isResumable, playedPercent } from '../../lib/format';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import styles from './Billboard.module.css';
 
 export default function Billboard({
-  item, onPlay, onMoreInfo,
+  item: listItem, onPlay, onMoreInfo,
 }: { item: BaseItemDto; onPlay: (i: BaseItemDto) => void; onMoreInfo: (i: BaseItemDto) => void }) {
   const { api } = useApi();
+  // Resume/Next-Up list items lack the series-backdrop/logo fallback tags an
+  // episode needs; the full item (same call DetailModal uses) carries them.
+  const full = useItem(listItem.Id ?? undefined).data;
+  const item = full ?? listItem;
   const backdrop = getBackdropUrl(api, item, { width: 1920 });
   const logo = getLogoUrl(api, item);
   const { title, subtitle } = cardTitle(item);
