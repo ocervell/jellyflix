@@ -1,7 +1,7 @@
 import { Play, ChevronDown } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getCardImageUrl } from '../../lib/jellyfin/images';
-import { playedPercent, cardTitle, cardMeta } from '../../lib/format';
+import { playedPercent, cardTitle, cardMeta, episodeCode } from '../../lib/format';
 import { Img } from '../common/Img';
 import { ProgressBar } from '../common/ProgressBar';
 import ItemActions from '../common/ItemActions';
@@ -26,7 +26,7 @@ export default function PreviewCard({
         {!src && <span className={styles.fallbackTitle}>{title}</span>}
         <div className={styles.info}>
           <div className={styles.infoTitle}>{title}</div>
-          {subtitle && <div className={styles.infoSub}>{subtitle}</div>}
+          {episodeCode(item) && <div className={styles.infoSub}>{episodeCode(item)}</div>}
           {!inProgress && meta.length > 0 && <div className={styles.infoMeta}>{meta.join(' · ')}</div>}
         </div>
         <ProgressBar percent={playedPercent(item)} />

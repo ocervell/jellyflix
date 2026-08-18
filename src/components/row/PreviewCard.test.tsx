@@ -31,6 +31,15 @@ test('in-progress item shows the title only (no metadata row)', () => {
   expect(screen.queryByText(/2009/)).not.toBeInTheDocument();
 });
 
+test('episode card shows only the SxEx code as subtitle (not the episode title)', () => {
+  const ep = { Id: 'e', Type: 'Episode', SeriesName: 'Platonic', Name: 'La fête de divorce',
+    ParentIndexNumber: 1, IndexNumber: 4, ProductionYear: 2023 } as BaseItemDto;
+  render(<PreviewCard item={ep} onOpen={() => {}} onPlay={() => {}} />);
+  expect(screen.getByText('Platonic')).toBeInTheDocument();
+  expect(screen.getByText('S1:E4')).toBeInTheDocument();
+  expect(screen.queryByText(/La fête de divorce/)).not.toBeInTheDocument();
+});
+
 test('series shows a season count instead of runtime', () => {
   const series = { Id: 's', Name: 'Money Heist', Type: 'Series', ProductionYear: 2021, OfficialRating: 'A', ChildCount: 3 } as BaseItemDto;
   render(<PreviewCard item={series} onOpen={() => {}} onPlay={() => {}} />);
