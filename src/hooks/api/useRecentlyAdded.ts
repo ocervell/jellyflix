@@ -17,7 +17,7 @@ export function useRecentlyAdded() {
         sortBy: [ItemSortBy.DateCreated],
         sortOrder: [SortOrder.Descending],
         limit: 60, // over-fetch: grouping collapses episodes; slice to 20 after
-        fields: [ItemFields.PrimaryImageAspectRatio],
+        fields: [ItemFields.PrimaryImageAspectRatio, ItemFields.ChildCount],
         enableImageTypes: [ImageType.Primary, ImageType.Thumb],
       }, { signal });
       return groupEpisodesBySeries(data.Items ?? []).slice(0, 20);

@@ -37,6 +37,25 @@ export function cardTitle(item: BaseItemDto): { title: string; subtitle: string 
   return { title: item.SeriesName ?? name, subtitle };
 }
 
+/**
+ * Metadata parts shown under a card title (year · rating · seasons|runtime).
+ * Series report their season count (ChildCount); everything else its runtime.
+ * Missing pieces are dropped so the caller can just join what's there.
+ */
+export function cardMeta(item: BaseItemDto): string[] {
+  const parts: string[] = [];
+  if (item.ProductionYear) parts.push(String(item.ProductionYear));
+  if (item.OfficialRating) parts.push(item.OfficialRating);
+  if (item.Type === 'Series') {
+    const n = item.ChildCount ?? 0;
+    if (n > 0) parts.push(`${n} Season${n > 1 ? 's' : ''}`);
+  } else {
+    const rt = formatRuntime(item.RunTimeTicks);
+    if (rt) parts.push(rt);
+  }
+  return parts;
+}
+
 export function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) seconds = 0;
   const total = Math.floor(seconds);

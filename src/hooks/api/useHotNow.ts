@@ -23,7 +23,7 @@ export function useHotNow() {
         isPlayed: false, // "Hot right now" is for discovery — hide already-watched titles
         maxPremiereDate: MAX_PREMIERE_DATE,
         limit: 20,
-        fields: [ItemFields.PrimaryImageAspectRatio],
+        fields: [ItemFields.PrimaryImageAspectRatio, ItemFields.ChildCount],
         enableImageTypes: [ImageType.Primary, ImageType.Thumb],
       }, { signal });
       return data.Items ?? [];
