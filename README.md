@@ -33,6 +33,7 @@ Jellyflix is a fast, modern front-end that talks to your existing Jellyfin serve
 - 🔎 **Global search** — fast, filterable results across your whole library.
 - ➕ **Saved for later** — a personal watchlist (backed by a Jellyfin playlist), with instant optimistic updates.
 - ❤️ **Favorites & ✅ watched** — one-click toggles that sync straight to Jellyfin.
+- ⬇️ **Download** — grab the original file for any movie or episode, straight from your server.
 - ⏯️ **Continue** — partially-watched titles show a **Continue** button with an inline progress bar and resume from where you left off.
 - 📺 **Series-aware** — season/episode lists, and `Show · S3:E1 · Title` labels everywhere so you always know what you're watching.
 - 📱 **Responsive** — works on desktop and mobile.
