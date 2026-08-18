@@ -52,8 +52,10 @@ export default function DetailModal({
                     )}
                   </button>
                   {item.Type === 'Episode' && item.SeriesId && (
-                    <button className={styles.series} onClick={() => setId(item.SeriesId!)}>
-                      <Tv size={18} /> {item.SeriesName ? `Go to ${item.SeriesName}` : 'Go to series'}
+                    <button className={styles.series} onClick={() => setId(item.SeriesId!)}
+                      title={item.SeriesName ? `Go to ${item.SeriesName}` : 'Go to series'}>
+                      <Tv size={18} />
+                      <span className={styles.seriesLabel}>{item.SeriesName ? `Go to ${item.SeriesName}` : 'Go to series'}</span>
                     </button>
                   )}
                   <ItemActions item={item} size="md" />

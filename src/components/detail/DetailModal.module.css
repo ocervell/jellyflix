@@ -5,20 +5,21 @@
 @keyframes modalIn { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .backdrop, .modal { animation: none; } }
 .close { position: absolute; top: 16px; right: 16px; z-index: 5; width: 36px; height: 36px; border-radius: 50%; background: #181818; color: #fff; }
-.hero { position: relative; aspect-ratio: 16/9; }
+.hero { position: relative; aspect-ratio: 16/9; min-height: 260px; }
 .heroBg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .heroScrim { position: absolute; inset: 0; background:
   linear-gradient(0deg, var(--nf-elevated-2) 0%, rgba(0,0,0,.7) 32%, rgba(0,0,0,.28) 62%, transparent 88%); }
-.heroContent { position: absolute; left: 40px; bottom: 32px; }
-.logo { max-width: 320px; max-height: 140px; margin-bottom: 16px; }
+.heroContent { position: absolute; left: 40px; right: 40px; bottom: 32px; }
+.logo { max-width: 320px; max-height: 120px; margin-bottom: 16px; }
 .title { font-size: clamp(28px, 7vw, 40px); font-weight: 800; margin-bottom: 16px;
   text-shadow: 0 2px 6px rgba(0,0,0,.9), 0 0 16px rgba(0,0,0,.6); }
 .episode { font-size: 16px; font-weight: 600; color: #e8e8e8; margin: -6px 0 14px;
   text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7); }
-.heroButtons { display: flex; gap: 12px; align-items: center; }
+.heroButtons { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .play { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #000; font-weight: 700; padding: 8px 24px; border-radius: var(--nf-radius); }
-.series { display: inline-flex; align-items: center; gap: 8px; background: rgba(109,109,110,.7); color: #fff; font-weight: 600; padding: 8px 18px; border-radius: var(--nf-radius); }
+.series { display: inline-flex; align-items: center; gap: 8px; background: rgba(109,109,110,.7); color: #fff; font-weight: 600; padding: 8px 18px; border-radius: var(--nf-radius); max-width: 340px; }
 .series:hover { background: rgba(109,109,110,.5); }
+.seriesLabel { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .playProgress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(0,0,0,.2); }
 .playProgress > span { display: block; height: 100%; background: var(--nf-red); }
 .body { padding: 24px 40px 40px; }
@@ -34,4 +35,10 @@
 @media (max-width: 600px) {
   .backdrop { padding: 0; }
   .modal { width: 100%; min-height: 100dvh; border-radius: 0; }
+  /* Give the bottom-anchored hero content more room so tall logos don't clip
+     against the top edge, and keep buttons inside the narrow viewport. */
+  .hero { min-height: 340px; }
+  .heroContent { left: 20px; right: 20px; bottom: 20px; }
+  .logo { max-width: 240px; max-height: 88px; }
+  .series { max-width: 100%; }
 }
