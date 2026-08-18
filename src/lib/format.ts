@@ -27,13 +27,18 @@ export function isResumable(item: BaseItemDto): boolean {
  * "S{season}:E{episode} · Episode Title". Everything else shows its own name
  * as the title with no subtitle.
  */
+/** Compact "S{season}:E{episode}" for an episode, or null for anything else / missing numbers. */
+export function episodeCode(item: BaseItemDto): string | null {
+  if (item.Type !== 'Episode') return null;
+  const s = item.ParentIndexNumber;
+  const e = item.IndexNumber;
+  return s != null && e != null ? `S${s}:E${e}` : null;
+}
+
 export function cardTitle(item: BaseItemDto): { title: string; subtitle: string | null } {
   const name = item.Name ?? 'Untitled';
   if (item.Type !== 'Episode') return { title: name, subtitle: null };
-  const s = item.ParentIndexNumber;
-  const e = item.IndexNumber;
-  const code = s != null && e != null ? `S${s}:E${e}` : null;
-  const subtitle = [code, item.Name].filter(Boolean).join(' · ') || null;
+  const subtitle = [episodeCode(item), item.Name].filter(Boolean).join(' · ') || null;
   return { title: item.SeriesName ?? name, subtitle };
 }
 

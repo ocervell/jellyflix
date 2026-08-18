@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
-import { ticksToSeconds, formatRuntime, playedPercent, formatTime, cardTitle, cardMeta, isResumable } from './format';
+import { ticksToSeconds, formatRuntime, playedPercent, formatTime, cardTitle, cardMeta, episodeCode, isResumable } from './format';
 
 test('ticksToSeconds', () => {
   expect(ticksToSeconds(10_000_000)).toBe(1);
@@ -38,6 +38,11 @@ test('isResumable: true only when partially watched with a saved position', () =
   expect(isResumable({ UserData: { PlaybackPositionTicks: 0 } } as BaseItemDto)).toBe(false);
   expect(isResumable({ UserData: { PlaybackPositionTicks: 5_000_000_000, Played: true } } as BaseItemDto)).toBe(false);
   expect(isResumable({} as BaseItemDto)).toBe(false);
+});
+test('episodeCode: SxEx for episodes, null otherwise', () => {
+  expect(episodeCode({ Type: 'Episode', ParentIndexNumber: 1, IndexNumber: 4 } as BaseItemDto)).toBe('S1:E4');
+  expect(episodeCode({ Type: 'Episode', Name: 'Pilot' } as BaseItemDto)).toBeNull();
+  expect(episodeCode({ Type: 'Movie', ParentIndexNumber: 1, IndexNumber: 4 } as BaseItemDto)).toBeNull();
 });
 test('cardMeta: movie shows year, rating, runtime', () => {
   expect(cardMeta({ Type: 'Movie', ProductionYear: 2018, OfficialRating: 'U/A 13+', RunTimeTicks: 8400 * 10_000_000 } as BaseItemDto))

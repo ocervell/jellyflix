@@ -2,9 +2,9 @@
 .art { display: block; width: 100%; position: relative; aspect-ratio: 16/9; border-radius: var(--nf-radius); overflow: hidden; background: var(--nf-elevated-2); }
 .fallbackTitle { position: absolute; inset: 0; display: grid; place-items: center; padding: 8px; text-align: center; font-weight: 700; }
 /* Always-visible title/metadata overlaid at the bottom of the thumbnail. */
-.info { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 12px 12px; text-align: left; pointer-events: none;
+.info { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 10px 9px; text-align: left; pointer-events: none;
   background: linear-gradient(to top, rgba(0,0,0,.88) 0%, rgba(0,0,0,.55) 45%, transparent 100%); }
-.infoTitle { font-weight: 700; font-size: 14px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.85);
+.infoTitle { font-weight: 700; font-size: 13px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.85);
   display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .infoSub { margin-top: 1px; font-size: 11px; color: rgba(255,255,255,.85);
   display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
