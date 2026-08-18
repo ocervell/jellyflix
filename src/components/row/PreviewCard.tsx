@@ -16,9 +16,10 @@ export default function PreviewCard({
   const { title, subtitle } = cardTitle(item);
   const fullLabel = subtitle ? `${title} – ${subtitle}` : title;
   // In-progress cards (Continue Watching) show just the title above the progress
-  // bar; not-yet-started cards also get the year · rating · seasons/runtime row.
+  // bar; not-yet-started cards get one metadata line: SxEx · year · rating ·
+  // seasons/runtime (episode code first, kept to a single non-wrapping line).
   const inProgress = playedPercent(item) > 0;
-  const meta = cardMeta(item);
+  const meta = [episodeCode(item), ...cardMeta(item)].filter(Boolean);
   return (
     <div className={styles.card}>
       <button className={styles.art} onClick={() => onOpen(item)} aria-label={fullLabel}>
@@ -26,7 +27,6 @@ export default function PreviewCard({
         {!src && <span className={styles.fallbackTitle}>{title}</span>}
         <div className={styles.info}>
           <div className={styles.infoTitle}>{title}</div>
-          {episodeCode(item) && <div className={styles.infoSub}>{episodeCode(item)}</div>}
           {!inProgress && meta.length > 0 && <div className={styles.infoMeta}>{meta.join(' · ')}</div>}
         </div>
         <ProgressBar percent={playedPercent(item)} />

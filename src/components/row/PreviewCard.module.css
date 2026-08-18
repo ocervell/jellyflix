@@ -6,9 +6,8 @@
   background: linear-gradient(to top, rgba(0,0,0,.88) 0%, rgba(0,0,0,.55) 45%, transparent 100%); }
 .infoTitle { font-weight: 700; font-size: 13px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.85);
   display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-.infoSub { margin-top: 1px; font-size: 11px; color: rgba(255,255,255,.85);
-  display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-.infoMeta { margin-top: 3px; font-size: 11px; color: rgba(255,255,255,.8); }
+.infoMeta { margin-top: 2px; font-size: 11px; color: rgba(255,255,255,.8);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .panel { position: absolute; left: 0; right: 0; top: 100%; background: var(--nf-elevated-2); border-radius: 0 0 var(--nf-radius) var(--nf-radius);
   padding: 12px; opacity: 0; pointer-events: none; transform: translateY(-6px); transition: opacity .2s ease; box-shadow: 0 12px 24px rgba(0,0,0,.6); }
