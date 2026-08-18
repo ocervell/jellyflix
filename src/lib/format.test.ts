@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
-import { ticksToSeconds, formatRuntime, playedPercent, formatTime, cardTitle, isResumable } from './format';
+import { ticksToSeconds, formatRuntime, playedPercent, formatTime, cardTitle, cardMeta, isResumable } from './format';
 
 test('ticksToSeconds', () => {
   expect(ticksToSeconds(10_000_000)).toBe(1);
@@ -38,6 +38,19 @@ test('isResumable: true only when partially watched with a saved position', () =
   expect(isResumable({ UserData: { PlaybackPositionTicks: 0 } } as BaseItemDto)).toBe(false);
   expect(isResumable({ UserData: { PlaybackPositionTicks: 5_000_000_000, Played: true } } as BaseItemDto)).toBe(false);
   expect(isResumable({} as BaseItemDto)).toBe(false);
+});
+test('cardMeta: movie shows year, rating, runtime', () => {
+  expect(cardMeta({ Type: 'Movie', ProductionYear: 2018, OfficialRating: 'U/A 13+', RunTimeTicks: 8400 * 10_000_000 } as BaseItemDto))
+    .toEqual(['2018', 'U/A 13+', '2h 20m']);
+});
+test('cardMeta: series shows season count instead of runtime', () => {
+  expect(cardMeta({ Type: 'Series', ProductionYear: 2020, OfficialRating: 'U/A 16+', ChildCount: 7 } as BaseItemDto))
+    .toEqual(['2020', 'U/A 16+', '7 Seasons']);
+  expect(cardMeta({ Type: 'Series', ChildCount: 1 } as BaseItemDto)).toEqual(['1 Season']);
+});
+test('cardMeta: drops missing pieces', () => {
+  expect(cardMeta({ Type: 'Movie', ProductionYear: 1999 } as BaseItemDto)).toEqual(['1999']);
+  expect(cardMeta({ Type: 'Series' } as BaseItemDto)).toEqual([]);
 });
 test('formatTime', () => {
   expect(formatTime(0)).toBe('0:00');

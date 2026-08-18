@@ -16,7 +16,7 @@ export function useFavorites() {
         includeItemTypes: [BaseItemKind.Movie, BaseItemKind.Series, BaseItemKind.Episode],
         sortBy: [ItemSortBy.SortName],
         sortOrder: [SortOrder.Ascending],
-        fields: [ItemFields.PrimaryImageAspectRatio],
+        fields: [ItemFields.PrimaryImageAspectRatio, ItemFields.ChildCount],
         enableImageTypes: [ImageType.Primary, ImageType.Thumb],
         limit: 50,
       }, { signal });

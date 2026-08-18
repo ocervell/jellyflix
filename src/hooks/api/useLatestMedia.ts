@@ -11,7 +11,7 @@ export function useLatestMedia(parentId: string) {
     enabled: !!parentId,
     queryFn: async ({ signal }) => {
       const { data } = await getUserLibraryApi(api).getLatestMedia(
-        { userId: session.userId, parentId, limit: 20, fields: [ItemFields.PrimaryImageAspectRatio, ItemFields.Overview], enableImageTypes: [ImageType.Primary, ImageType.Thumb, ImageType.Backdrop, ImageType.Logo] },
+        { userId: session.userId, parentId, limit: 20, fields: [ItemFields.PrimaryImageAspectRatio, ItemFields.Overview, ItemFields.ChildCount], enableImageTypes: [ImageType.Primary, ImageType.Thumb, ImageType.Backdrop, ImageType.Logo] },
         { signal },
       );
       return data ?? [];

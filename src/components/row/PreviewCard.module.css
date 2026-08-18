@@ -1,16 +1,20 @@
 .card { position: relative; }
 .art { display: block; width: 100%; position: relative; aspect-ratio: 16/9; border-radius: var(--nf-radius); overflow: hidden; background: var(--nf-elevated-2); }
 .fallbackTitle { position: absolute; inset: 0; display: grid; place-items: center; padding: 8px; text-align: center; font-weight: 700; }
+/* Always-visible title/metadata overlaid at the bottom of the thumbnail. */
+.info { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 12px 12px; text-align: left; pointer-events: none;
+  background: linear-gradient(to top, rgba(0,0,0,.88) 0%, rgba(0,0,0,.55) 45%, transparent 100%); }
+.infoTitle { font-weight: 700; font-size: 14px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.85);
+  display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.infoSub { margin-top: 1px; font-size: 11px; color: rgba(255,255,255,.85);
+  display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.infoMeta { margin-top: 3px; font-size: 11px; color: rgba(255,255,255,.8); }
+
 .panel { position: absolute; left: 0; right: 0; top: 100%; background: var(--nf-elevated-2); border-radius: 0 0 var(--nf-radius) var(--nf-radius);
   padding: 12px; opacity: 0; pointer-events: none; transform: translateY(-6px); transition: opacity .2s ease; box-shadow: 0 12px 24px rgba(0,0,0,.6); }
-.actions { display: flex; gap: 8px; margin-bottom: 8px; }
+.actions { display: flex; gap: 8px; }
 .play, .more { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--nf-outline); display: grid; place-items: center; }
 .play { background: #fff; color: #000; border-color: #fff; }
-.meta { display: flex; gap: 8px; font-size: 13px; color: var(--nf-grey); }
-.name { margin-top: 4px; font-weight: 700; font-size: 14px;
-  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.episode { margin-top: 2px; font-size: 12px; color: var(--nf-grey);
-  display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .card { transition: transform .3s var(--nf-ease); transition-delay: .4s; }

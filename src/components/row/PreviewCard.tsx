@@ -1,7 +1,7 @@
 import { Play, ChevronDown } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getCardImageUrl } from '../../lib/jellyfin/images';
-import { formatRuntime, playedPercent, cardTitle } from '../../lib/format';
+import { playedPercent, cardTitle, cardMeta } from '../../lib/format';
 import { Img } from '../common/Img';
 import { ProgressBar } from '../common/ProgressBar';
 import ItemActions from '../common/ItemActions';
@@ -15,11 +15,20 @@ export default function PreviewCard({
   const src = getCardImageUrl(api, item, { width: 400 });
   const { title, subtitle } = cardTitle(item);
   const fullLabel = subtitle ? `${title} – ${subtitle}` : title;
+  // In-progress cards (Continue Watching) show just the title above the progress
+  // bar; not-yet-started cards also get the year · rating · seasons/runtime row.
+  const inProgress = playedPercent(item) > 0;
+  const meta = cardMeta(item);
   return (
     <div className={styles.card}>
       <button className={styles.art} onClick={() => onOpen(item)} aria-label={fullLabel}>
         <Img src={src} alt={fullLabel} />
         {!src && <span className={styles.fallbackTitle}>{title}</span>}
+        <div className={styles.info}>
+          <div className={styles.infoTitle}>{title}</div>
+          {subtitle && <div className={styles.infoSub}>{subtitle}</div>}
+          {!inProgress && meta.length > 0 && <div className={styles.infoMeta}>{meta.join(' · ')}</div>}
+        </div>
         <ProgressBar percent={playedPercent(item)} />
       </button>
       <div className={styles.panel}>
@@ -32,12 +41,6 @@ export default function PreviewCard({
           </button>
           <ItemActions item={item} size="sm" />
         </div>
-        <div className={styles.meta}>
-          {item.ProductionYear && <span>{item.ProductionYear}</span>}
-          {item.RunTimeTicks ? <span>{formatRuntime(item.RunTimeTicks)}</span> : null}
-        </div>
-        <div className={styles.name}>{title}</div>
-        {subtitle && <div className={styles.episode}>{subtitle}</div>}
       </div>
     </div>
   );

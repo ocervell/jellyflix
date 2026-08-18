@@ -25,7 +25,7 @@ export function useWatchlist() {
       const res = await getPlaylistsApi(api).getPlaylistItems(
         {
           playlistId: pl.Id, userId: session.userId,
-          fields: [ItemFields.PrimaryImageAspectRatio],
+          fields: [ItemFields.PrimaryImageAspectRatio, ItemFields.ChildCount],
           enableImageTypes: [ImageType.Primary, ImageType.Thumb],
         },
         { signal },
